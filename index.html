@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Shipboard Electronical Control — Rafael Sukirno, CE</title>
+<style>
+  :root{
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    --bg:#0a192f; --card:#112240; --card2:#1a2f4a; --text:#ccd6f6; --soft:#a8b2d1; --accent:#64ffda;
+    --accent2:#f0a500; --border:#233554; --danger:#ff4d4d; --dim:#8892b0;
+    --navy:#020c1b; --blue:#4da6ff; --purple:#9d7fff; --onaccent:#0a192f;
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#f2f6fb; --card:#ffffff; --card2:#eaf0f8; --text:#14213d; --soft:#33415c; --accent:#00796b;
+      --accent2:#9a5b00; --border:#c9d5e5; --danger:#c62828; --dim:#4a5a75;
+      --navy:#e3ebf5; --blue:#1565c0; --purple:#5b3fd0; --onaccent:#ffffff;
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#f2f6fb; --card:#ffffff; --card2:#eaf0f8; --text:#14213d; --soft:#33415c; --accent:#00796b;
+    --accent2:#9a5b00; --border:#c9d5e5; --danger:#c62828; --dim:#4a5a75;
+    --navy:#e3ebf5; --blue:#1565c0; --purple:#5b3fd0; --onaccent:#ffffff;
+  }
+  :root[data-theme="dark"]{
+    --bg:#0a192f; --card:#112240; --card2:#1a2f4a; --text:#ccd6f6; --soft:#a8b2d1; --accent:#64ffda;
+    --accent2:#f0a500; --border:#233554; --danger:#ff4d4d; --dim:#8892b0;
+    --navy:#020c1b; --blue:#4da6ff; --purple:#9d7fff; --onaccent:#0a192f;
+  }
+  html{scroll-padding-top:env(safe-area-inset-top,0px)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:1rem;overflow-x:hidden}
+  a:focus-visible,button:focus-visible,input:focus-visible,.card:focus-visible,.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  header{text-align:center;padding:1.4rem 1rem;border-bottom:2px solid var(--accent);margin-bottom:1rem;position:relative}
+  header h1{font-size:1.6rem;color:var(--accent);letter-spacing:.5px}
+  header .sub{font-size:.9rem;color:var(--dim);margin-top:.3rem}
+  header .audience{font-size:.9rem;color:var(--text);margin-top:.5rem;font-weight:600}
+  header .credit{font-size:.85rem;color:var(--accent2);margin-top:.3rem;font-weight:600}
+  header .vessel{font-size:.75rem;color:var(--blue);margin-top:.5rem;background:var(--navy);display:inline-block;padding:.2rem .8rem;border-radius:12px}
+  .theme-btn{position:absolute;top:.6rem;right:.6rem;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:.35rem .6rem;cursor:pointer;font-size:.8rem}
+
+  nav{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin:1rem 0;padding:.5rem;background:var(--navy);border-radius:10px;position:sticky;top:env(safe-area-inset-top,0px);z-index:100;border:1px solid var(--border)}
+  nav button{background:transparent;color:var(--text);border:1px solid var(--border);padding:.4rem .8rem;border-radius:6px;cursor:pointer;font-size:.8rem;transition:.2s;white-space:nowrap}
+  nav button:hover{background:var(--border);color:var(--accent)}
+  nav button.active{background:var(--accent);color:var(--onaccent);border-color:var(--accent);font-weight:bold}
+
+  main{max-width:1250px;margin:0 auto}
+  .search-box{display:flex;gap:.5rem;margin:1.2rem 0;flex-wrap:wrap}
+  .search-box input{flex:1;min-width:200px;padding:.8rem 1rem;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:1rem}
+  .search-box input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(100,255,218,.2)}
+  .search-box button{padding:.8rem 1.2rem;border:none;border-radius:8px;font-weight:bold;cursor:pointer}
+  .btn-cari{background:var(--accent);color:var(--onaccent)}
+  .btn-cari-google{background:#4285f4;color:#fff}
+  .btn-cari-google:hover{background:#2f6fd6}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1.2rem;margin-bottom:1rem;transition:.2s;cursor:pointer}
+  .card:hover{border-color:var(--accent);box-shadow:0 5px 20px rgba(0,0,0,.15)}
+  .card h3{color:var(--accent);margin-bottom:.4rem;font-size:1.1rem}
+  .card p{font-size:.9rem;color:var(--soft)}
+  .card .role{font-size:.8rem;color:var(--accent2);margin:.3rem 0}
+
+  .tag{display:inline-block;background:var(--border);color:var(--accent);padding:.2rem .6rem;border-radius:4px;font-size:.72rem;margin:.15rem}
+  .quick .tag{cursor:pointer;border:none;font-family:inherit}
+  .quick .tag:hover{background:var(--accent);color:var(--onaccent)}
+  .tag-blue{background:rgba(77,166,255,.2);color:var(--blue)}
+  .tag-purple{background:rgba(157,127,255,.2);color:var(--purple)}
+  .badge{background:var(--accent2);color:var(--onaccent);font-size:.7rem;padding:.15rem .5rem;border-radius:3px;margin-left:.3rem;font-weight:bold}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:1rem}
+  .section-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.6rem;margin:1.5rem 0 1rem;padding-bottom:.5rem;border-bottom:2px solid var(--border)}
+  .section-title{font-size:1.3rem;color:var(--accent)}
+  .btn-section-google{display:inline-flex;align-items:center;gap:.3rem;background:#fff;color:#1a56c4;border:1px solid #4285f4;border-radius:6px;padding:.4rem .8rem;font-size:.8rem;font-weight:600;text-decoration:none}
+  .btn-section-google:hover{background:#4285f4;color:#fff}
+  .section-desc{color:var(--dim);margin-bottom:1rem}
+  .hidden{display:none !important}
+
+  .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(2,12,27,.88);backdrop-filter:blur(6px);z-index:999;display:flex;align-items:flex-start;justify-content:center;padding:calc(1.5rem + env(safe-area-inset-top,0px)) 1rem calc(1.5rem + env(safe-area-inset-bottom,0px));overflow-y:auto;animation:fadeIn .25s}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes slideUp{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .modal-content{background:var(--card);border:1px solid var(--accent);border-radius:12px;max-width:950px;width:100%;padding:1.5rem;position:relative;animation:slideUp .25s;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .modal-close{position:absolute;top:1rem;right:1rem;background:var(--danger);color:#fff;border:none;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:1.3rem;font-weight:bold;z-index:2}
+  .modal-content h2{color:var(--accent);font-size:1.4rem;margin-bottom:.5rem;padding-right:2.5rem}
+  .modal-content h3{color:var(--accent2);margin:1.2rem 0 .5rem;font-size:1.05rem;border-bottom:1px solid var(--border);padding-bottom:.3rem}
+  .modal-content p,.modal-content li{font-size:.9rem;color:var(--soft);margin:.25rem 0}
+  .modal-content ul{padding-left:1.2rem;margin:.3rem 0}
+  .modal-credit{margin-top:1.2rem;padding-top:.8rem;border-top:1px solid var(--border);font-size:.8rem;color:var(--dim);text-align:center}
+
+  .flow{background:var(--navy);border:1px solid var(--border);border-radius:8px;padding:1rem;margin:.6rem 0;font-family:'Courier New',monospace;font-size:.82rem;color:var(--accent);overflow-x:auto;white-space:pre;line-height:1.7}
+  .info-row{display:flex;flex-wrap:wrap;gap:.4rem;margin:.4rem 0;padding:.5rem .7rem;background:var(--card2);border-radius:6px;border-left:3px solid var(--blue)}
+  .info-row strong{color:var(--blue);min-width:130px;font-size:.85rem}
+  .info-row span{font-size:.88rem}
+  .comp-block{background:var(--card2);border-left:3px solid var(--purple);padding:.6rem .8rem;margin:.4rem 0;border-radius:6px}
+  .comp-block strong{color:var(--purple);font-size:.9rem}
+  .comp-block .sub{font-size:.82rem;color:var(--dim);margin-top:.2rem}
+  .comp-block .type{font-size:.75rem;color:var(--accent2);font-style:italic}
+  .comp-block .glink{font-size:.75rem;color:var(--blue);text-decoration:none;margin-left:.4rem}
+  .comp-block .glink:hover{text-decoration:underline}
+  .ref-box{background:rgba(77,166,255,.1);border-left:4px solid var(--blue);padding:.7rem .9rem;border-radius:4px;margin:.5rem 0;font-size:.88rem}
+  .case-box{background:rgba(240,165,0,.1);border-left:4px solid var(--accent2);padding:.7rem .9rem;border-radius:4px;margin:.5rem 0;font-size:.88rem;color:var(--soft)}
+  .case-box strong{color:var(--accent2)}
+  .wiring-box{background:var(--navy);border:1px dashed var(--accent);padding:.8rem;border-radius:6px;font-family:'Courier New',monospace;font-size:.82rem;color:var(--accent);overflow-x:auto;white-space:pre;line-height:1.6;margin:.5rem 0}
+
+  .chip{display:inline-block;background:var(--card2);color:var(--blue);border:1px solid var(--border);border-radius:14px;padding:.2rem .7rem;font-size:.8rem;margin:.2rem .2rem .2rem 0;text-decoration:none}
+  .chip:hover{background:var(--blue);color:#fff}
+  .ref-box .chip{display:inline-block}
+
+  .btn-group{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.8rem}
+  .btn-ext{display:inline-flex;align-items:center;gap:.3rem;padding:.45rem .9rem;border-radius:6px;text-decoration:none;font-size:.8rem;font-weight:600;border:1px solid transparent}
+  .btn-google{background:#fff;color:#1a56c4;border-color:#4285f4}
+  .btn-google:hover{background:#4285f4;color:#fff}
+  .btn-youtube{background:#ff0000;color:#fff}
+  .btn-pinterest{background:#e60023;color:#fff}
+  .btn-manual{background:var(--accent2);color:var(--onaccent)}
+  .btn-imo,.btn-solas{background:#003366;color:#fff}
+  .btn-marpol{background:#006633;color:#fff}
+  .btn-class{background:#8b0000;color:#fff}
+  .btn-iec{background:#1a1a8b;color:#fff}
+  .btn-ext:hover{filter:brightness(1.2)}
+
+  .formula-calc label{display:block;font-size:.85rem;margin-top:.4rem}
+  .formula-calc input{width:100%;padding:.5rem;margin:.3rem 0;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px}
+  .formula-calc button{margin-top:.5rem;padding:.5rem 1rem;background:var(--accent);color:var(--onaccent);border:none;border-radius:4px;cursor:pointer;font-weight:bold}
+  .result{margin-top:.5rem;font-weight:bold;color:var(--accent2);font-size:1.05rem}
+  .opt-btn{display:block;margin:.5rem 0;padding:.7rem;width:100%;text-align:left;background:var(--border);color:var(--text);border:none;border-radius:6px;cursor:pointer;font-size:.95rem}
+  .opt-btn:hover{background:var(--accent);color:var(--onaccent)}
+
+  footer{text-align:center;margin-top:2rem;padding:1.5rem;border-top:1px solid var(--border);font-size:.82rem;color:var(--dim)}
+  footer a{color:var(--accent);text-decoration:none;margin:0 .3rem}
+  footer a:hover{text-decoration:underline}
+
+  @media(max-width:700px){
+    header h1{font-size:1.2rem}
+    header{padding-top:2.6rem}
+    .search-box{flex-direction:column}
+    .search-box input{min-width:0}
+    nav button{padding:.35rem .55rem;font-size:.7rem}
+    .modal-content{padding:1rem}
+    .flow,.wiring-box{font-size:.72rem}
+  }
+  @media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<header>
+  <button class="theme-btn" id="themeBtn" aria-label="Ganti tema terang atau gelap">🌓 Tema</button>
+  <h1>⚓ SHIPBOARD ELECTRONICAL CONTROL</h1>
+  <p class="sub">Electronical • Control • Actuating • Automation — Pengetahuan Kelistrikan &amp; Kontrol di Kapal</p>
+  <p class="audience">Media Belajar Taruna Poltekpel &amp; UHT — Periode 2026</p>
+  <p class="credit">Dibuat oleh Rafael Sukirno, CE</p>
+  <p class="vessel">🎯 Kapal Acuan: Bulk Carrier / Product Tanker 50.000 DWT</p>
+</header>
+
+<nav id="mainNav" aria-label="Menu utama">
+  <button data-view="dashboard" class="active">🏠 Beranda</button>
+  <button data-view="mecs">🧠 Kontrol Main Engine</button>
+  <button data-view="auxec">⚙️ Kontrol Aux Engine</button>
+  <button data-view="steering">🎯 Kontrol Kemudi</button>
+  <button data-view="cargo">📦 Kontrol Kargo/Ballast</button>
+  <button data-view="safety">🚨 Sistem Keselamatan</button>
+  <button data-view="navi">🧭 Navigasi</button>
+  <button data-view="comm">📡 Komunikasi</button>
+  <button data-view="sensors">📊 Sensor &amp; Sinyal</button>
+  <button data-view="plc">🔌 PLC &amp; Aktuator</button>
+  <button data-view="formula">📐 Rumus</button>
+  <button data-view="training">🎓 Latihan Soal</button>
+</nav>
+
+<main>
+  <section id="view-dashboard">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Cari: ECU, CCU, FIVA, rudder, AVR, gyro, autopilot..." aria-label="Kata kunci pencarian">
+      <button id="searchBtn" class="btn-cari">🔍 Cari di Aplikasi</button>
+      <button id="googleBtn" class="btn-cari-google">🌐 Cari di Google</button>
+    </div>
+    <div id="quickTags" class="quick" style="margin-bottom:1rem;text-align:center;"></div>
+    <div id="searchInfo" style="color:var(--dim);margin-bottom:.5rem;"></div>
+    <div id="searchResults" class="grid"></div>
+  </section>
+
+  <section id="view-mecs" class="hidden">
+    <div class="section-head"><h2 class="section-title">🧠 Main Engine Control System (Electronical)</h2><a class="btn-section-google" data-gq="MAN B&W ME-C engine control system ECU CCU FIVA" target="_blank" rel="noopener">🔍 Googling topik ini</a></div>
+    <p class="section-desc">Acuan: MAN B&amp;W ME-C / Wärtsilä RT-flex untuk kapal 50.000 DWT (±10 MW propulsi)</p>
+    <div id="mecsList" class="grid"></div>
+  </section>
+  <section id="view-auxec" class="hidden">
+    <div class="section-head"><h2 class="section-title">⚙️ Kontrol Auxiliary Engine (Electronical)</h2><a class="btn-section-google" data-gq="marine auxiliary engine electronic governor AVR generator" target="_blank" rel="noopener">🔍 Googling topik ini</a></div>
+    <p class="section-desc">3× Aux Engine ±800–1000 kW, 440V/60Hz, dengan electronic governor &amp; AVR</p>
+    <div id="auxecList" class="grid"></div>
+  </section>
+  <section id="view-steering" class="hidden">
+    <div class="section-head"><h2 class="section-title">🎯 Kontrol Steering Gear (Electronical)</h2><a class="btn-section-google" data-gq="ship steering gear control system electro hydraulic" target="_blank" rel="noopener">🔍 Googling topik ini</a></div>
+    <p class="section-desc">Acuan: SOLAS Ch. II-1 Reg. 29–30 — Ram-type / Rotary vane steering</p>
+    <div id="steeringList" class="grid"></div>
+  </section>
+  <section id="view-cargo" class="hidden">
+    <div class="section-head"><h2 class="section-title">📦 Kontrol Kargo &amp; Ballast (Electronical)</h2><a class="btn-section-google" data-gq="ship remote valve control ballast cargo level gauging" target="_blank" rel="noopener">🔍 Googling topik ini</a></div>
+    <p class="section-desc">Remote valve control, level gauging, IGS (tanker) / monitoring (bulk)</p>
+    <div id="cargoList" class="grid"></div>
+  </section>
+  <section id="view-safety" class="hidden">
+    <div class="section-head"><h2 class="section-title">🚨 Sistem Keselamatan Electronical</h2><a class="btn-section-google" data-gq="ship fire detection oil mist detector emergency shutdown SOLAS" target="_blank" rel="noopener">🔍 Googling topik ini</a></div>
+    <p class="section-desc">Deteksi kebakaran, deteksi gas, ESD — SOLAS Ch. II-2</p>
+    <div id="safetyList" class="grid"></div>
+  </section>
+  <section id="view-navi" class="hidden">
+    <div class="section-head"><h2 class="section-title">🧭 Sistem Navigasi Electronical</h2><a class="btn-section-google" data-gq="ship navigation gyrocompass ECDIS AIS autopilot VDR" target="_blank" rel="noopener">🔍 Googling topik ini</a></div>
+    <p class="section-desc">SOLAS Ch. V — Integrated Bridge System (IBS)</p>
+    <div id="naviList" class="grid"></div>
+  </section>
+  <section id="view-comm" class="hidden">
+    <div class="section-head"><h2 class="section-title">📡 Sistem Komunikasi</h2><a class="btn-section-google" data-gq="GMDSS VHF NMEA 0183 ship communication" target="_blank" rel="noopener">🔍 Googling topik ini</a></div>
+    <p class="section-desc">GMDSS, VHF, MF/HF, Inmarsat, jaringan NMEA</p>
+    <div id="commList" class="grid"></div>
+  </section>
+  <section id="view-sensors" class="hidden">
+    <div class="section-head"><h2 class="section-title">📊 Sensor &amp; Antarmuka Sinyal</h2><a class="btn-section-google" data-gq="PT100 thermocouple 4-20mA pressure transmitter proximity sensor marine" target="_blank" rel="noopener">🔍 Googling topik ini</a></div>
+    <p class="section-desc">RTD, TC, 4–20 mA, HART, digital — antarmuka ke PLC/DCS</p>
+    <div id="sensorsList" class="grid"></div>
+  </section>
+  <section id="view-plc" class="hidden">
+    <div class="section-head"><h2 class="section-title">🔌 PLC, Kontrol &amp; Aktuator</h2><a class="btn-section-google" data-gq="marine PLC servo valve solenoid valve HMI automation" target="_blank" rel="noopener">🔍 Googling topik ini</a></div>
+    <p class="section-desc">PLC, modul I/O, servo, solenoid — lapisan aktuasi</p>
+    <div id="plcList" class="grid"></div>
+  </section>
+  <section id="view-formula" class="hidden">
+    <div class="section-head"><h2 class="section-title">📐 Rumus &amp; Kalkulator Electronical</h2><a class="btn-section-google" data-gq="rumus instrumentasi 4-20mA PT100 thermocouple PLC scan time" target="_blank" rel="noopener">🔍 Googling topik ini</a></div>
+    <div id="formulaList" class="grid"></div>
+    <div id="formulaDetail" class="card hidden" style="cursor:default;"></div>
+  </section>
+  <section id="view-training" class="hidden">
+    <div class="section-head"><h2 class="section-title">🎓 Latihan Soal Electronical</h2><a class="btn-section-google" data-gq="soal latihan electronical shipboard automation" target="_blank" rel="noopener">🔍 Googling topik ini</a></div>
+    <div id="trainingArea"></div>
+  </section>
+</main>
+
+<div id="modalOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
+  <div class="modal-content" id="modalContent"></div>
+</div>
+
+<footer>
+  <p>&copy; 2026 <strong>Rafael Sukirno, CE</strong> — Shipboard Electronical Control v2.0</p>
+  <p style="margin-top:.3rem;">Untuk pembelajaran Taruna Politeknik Pelayaran (Poltekpel) &amp; Universitas Hang Tuah (UHT) Surabaya — Periode 2026</p>
+  <p style="margin-top:.5rem;">
+    <a href="https://www.imo.org" target="_blank" rel="noopener">IMO</a> •
+    <a href="https://www.google.com/search?q=SOLAS+convention" target="_blank" rel="noopener">SOLAS</a> •
+    <a href="https://www.google.com/search?q=MARPOL+convention" target="_blank" rel="noopener">MARPOL</a> •
+    <a href="https://www.iec.ch" target="_blank" rel="noopener">IEC</a> •
+    <a href="https://www.classnk.or.jp" target="_blank" rel="noopener">ClassNK</a> •
+    <a href="https://www.dnv.com" target="_blank" rel="noopener">DNV</a>
+  </p>
+  <p style="margin-top:.5rem;font-size:.75rem;">Nilai bertanda (VERIFY) wajib dicek ulang ke manual pabrikan dan class rules sebelum dipakai di kapal.</p>
+</footer>
+
+<script>
+const seedData = [
+// ===== MAIN ENGINE =====
+{id:"ME-001",name:"Engine Control Unit",short_name:"ECU",machinery:"Main Engine (ME-C / RT-flex)",machinery_section:"Panel kontrol utama di Engine Control Room (ECR) / di engine",synonyms:["ecu","engine control unit","main engine computer","kontrol mesin utama"],category:"MECS",subcategory:"Controller",vessel:"50.000 DWT — ME MAN B&W 6S50ME-C / Wärtsilä 6RT-flex58T",
+electronical_role:"Otak utama kontrol elektronik main engine — mengatur injection timing, exhaust valve timing, starting, reversing, dan governor elektronik.",
+electronical_components:[
+{name:"Dual CPU (Main + Backup)",function:"Redundant processor, auto-switchover jika 1 fail",type:"MAN ME proprietary / Wärtsilä UNIC"},
+{name:"CAN Bus Interface (Channel A & B)",function:"Komunikasi ke CCU per silinder",type:"ISO 11898 (CAN 2.0B)"},
+{name:"Angle Encoder Interface",function:"Terima pulse dari angle encoder crank",type:"Incremental / absolute encoder"},
+{name:"Speed Pickup Interface",function:"Terima sinyal dari 2 speed sensor (redundant)",type:"Magnetic pickup / proximity"},
+{name:"Analog Input Module",function:"Baca 4-20mA dari pressure & temperature transmitter",type:"AI card"},
+{name:"Digital I/O Module",function:"Baca status & kontrol output (relay)",type:"DI/DO card"},
+{name:"Modbus/Ethernet Gateway",function:"Kirim data ke AMS/PMS",type:"Modbus TCP, Ethernet"}],
+signal_flow:["Bridge Telegraph (Order) → Telegraph System → ECU (via 4-20mA / CAN)","Angle Encoder (Crank) → ECU → Referensi sudut 0-360°","Speed Pickup 1 & 2 → ECU → Governor feedback (RPM)","ECU → CCU Cyl #1..#6 (via CAN bus, dual redundant)","ECU → Governor Output → Fuel Pump Index (actuator)","ECU → Starting Air Valve (via solenoid)","CCU → FIVA Valve (Fuel Injection Valve Actuation)","CCU → Exhaust Valve Actuator (ELVA)","ECU → AMS (Alarm Monitoring) via Modbus TCP","ECU ↔ PMS (Power Management) untuk load control"],
+wiring_concept:{power:"24V DC redundant (2 sumber dari ESB + UPS)",signals:"CAN bus 2× twisted pair shielded 120Ω; loop 4-20mA; digital 24V",grounding:"Single point ground di panel, screen grounding satu sisi",shielding:"Shielded twisted pair untuk semua analog & CAN"},
+measurement_points:["Tegangan supply 24V DC di terminal ECU (±10%)","Resistansi loop CAN 60Ω (2× 120Ω paralel)","Amplitudo sinyal CAN: 2,5V idle, 3,5V/1,5V dominant","Tegangan output ke FIVA: pulse 0-20A","Pulse angle encoder: 5V TTL / 24V HTL","Speed pickup: 1-30V AC (tergantung RPM)"],
+normal_values:["Supply ECU: 24V DC ±10%","CAN bus: 250 kbit/s atau 500 kbit/s","Output speed pickup: ≥2V AC pada 100 RPM","Angle encoder: 5V TTL atau 24V HTL","Suhu ECU: <70°C"],
+reference_standards:["IACS UR M43 (Main Engine Control)","SOLAS Ch. II-1 Part C","MAN B&W ME-C Project Guide (VERIFY MANUAL)","Wärtsilä UNIC Manual (VERIFY MANUAL)","IEC 60092-504 (Automation, control, instrumentation)"],
+common_failure:["CAN bus error","Angle encoder fault","Sinyal speed hilang","CPU fault","Supply drop","Software hang"],
+troubleshooting:[
+{symptom:"ECU alarm CAN bus fault",causes:["Terminasi 120Ω lepas","Kabel CAN putus","CCU fault","Noise EMI"],actions:["Ukur resistansi CAN (60Ω)","Cek terminasi","Cek kabel twisted pair shielded","Isolasi CCU satu per satu","Cek grounding"]},
+{symptom:"Engine tidak start dari ECU",causes:["Starting air valve tidak aktif","Safety trip aktif","Fuel index 0","Interlock"],actions:["Cek output solenoid starting valve","Cek status safety (EICU)","Cek feedback fuel rack","Cek interlock turning gear"]},
+{symptom:"Governor hunting",causes:["Speed pickup kotor","Gain terlalu tinggi","Fuel rack macet","Angle encoder drift"],actions:["Bersihkan pickup","Turunkan gain","Cek fuel rack","Kalibrasi encoder"]}],
+case_study:"Kapal 50.000 DWT mengalami alarm CAN bus fault di laut. Investigasi: terminasi 120Ω di CCU #4 longgar karena getaran. Setelah dikencangkan + lock-tight, normal kembali.",
+related_components:["CCU","FIVA Valve","Angle Encoder","Speed Pickup","Telegraph System","EICU"],related_equipment:["Main Engine","Propeller","Auxiliary Engine","PMS"],
+training_questions:[{q:"Apa fungsi ECU pada main engine?",options:["Kontrol elektronik engine","Suplai bahan bakar","Pendinginan"],answer:0},{q:"Berapa resistansi normal CAN bus (2× 120Ω paralel)?",options:["120Ω","60Ω","0Ω"],answer:1}]},
+
+{id:"ME-002",name:"Cylinder Control Unit",short_name:"CCU",machinery:"Main Engine ME-C",machinery_section:"Di setiap silinder (6 unit untuk 6S50ME-C)",synonyms:["ccu","cylinder control unit","kontrol per silinder"],category:"MECS",subcategory:"Actuator Controller",vessel:"50.000 DWT — 1 CCU per silinder",
+electronical_role:"Mengontrol FIVA valve (fuel injection) dan exhaust valve actuation per silinder secara presisi berdasarkan perintah ECU.",
+electronical_components:[
+{name:"Microprocessor per silinder",function:"Eksekusi timing injection & exhaust valve",type:"Embedded controller"},
+{name:"CAN Bus Transceiver",function:"Komunikasi dengan ECU",type:"Dual channel redundant"},
+{name:"FIVA Valve Driver",function:"Driver arus tinggi untuk solenoid FIVA",type:"PWM current driver 0-20A"},
+{name:"Exhaust Valve Driver",function:"Driver untuk solenoid ELVA",type:"PWM current driver"},
+{name:"Local Position Sensor Interface",function:"Feedback posisi plunger FIVA",type:"Inductive / LVDT"}],
+signal_flow:["ECU → CAN Bus → CCU (perintah injection timing, durasi, exhaust valve timing)","CCU → FIVA Valve (pulse arus 0-20A) → Fuel Injection","CCU → Exhaust Valve Actuator (pulse arus) → Exhaust Valve buka/tutup","CCU → Feedback ke ECU (status, error)"],
+wiring_concept:{power:"24V DC dari panel engine, redundant",signals:"CAN bus 250-500 kbit/s, PWM current loop untuk FIVA",grounding:"Local ground ke engine block (bonding)",shielding:"Kabel shielded untuk driver FIVA (arus tinggi)"},
+measurement_points:["Tegangan supply 24V DC","Arus FIVA saat injection: pulse 0-20A","Resistansi coil FIVA: sesuai datasheet","Sinyal CAN bus di CCU","Feedback posisi FIVA"],
+normal_values:["Arus FIVA: 0-20A peak","CAN bus: 250 kbit/s","Supply CCU: 24V DC ±10%","Suhu CCU: <80°C (dekat silinder panas)"],
+reference_standards:["MAN B&W ME-C Project Guide (VERIFY)","IACS UR M43"],
+common_failure:["FIVA driver fault","Error komunikasi CAN","Overheating","Error feedback posisi"],
+troubleshooting:[
+{symptom:"Alarm CCU: FIVA driver fault",causes:["Coil FIVA short/open","Driver card rusak","Kabel FIVA rusak","EMI"],actions:["Ukur resistansi coil FIVA","Cek kabel ke FIVA","Ganti driver card jika perlu","Cek grounding"]},
+{symptom:"Injection timing tidak tepat",causes:["Angle encoder drift","Software CCU","Delay CAN"],actions:["Kalibrasi angle encoder","Update software","Cek beban CAN"]}],
+case_study:"CCU #3 alarm FIVA driver. Investigasi: resistansi coil FIVA ∞ (open). Coil FIVA diganti, alarm di-reset, normal.",
+related_components:["ECU","FIVA Valve","Exhaust Valve Actuator","Angle Encoder"],related_equipment:["Main Engine"],
+training_questions:[{q:"Berapa arus FIVA tipikal?",options:["Pulse 0-20A","0-1A","0-100A"],answer:0}]},
+
+{id:"ME-003",name:"FIVA Valve (Fuel Injection Valve Actuation)",machinery:"Main Engine ME-C",machinery_section:"Di cylinder head setiap silinder",synonyms:["fiva","fuel injection valve actuation","control valve injection"],category:"MECS",subcategory:"Actuator",vessel:"50.000 DWT — 6 silinder",
+electronical_role:"Katup kontrol servo-hidrolik yang dikendalikan elektronik untuk menentukan timing & durasi injeksi bahan bakar.",
+electronical_components:[
+{name:"Solenoid Coil (2 stage)",function:"Menggerakkan pilot valve",type:"PWM proportional solenoid"},
+{name:"Position Feedback Sensor",function:"Sensor posisi plunger",type:"Inductive proximity"},
+{name:"Connector",function:"Koneksi ke CCU",type:"Heavy-duty marine connector"}],
+signal_flow:["CCU → arus PWM → Solenoid FIVA → Pilot valve → Main spool → Timing injeksi bahan bakar","Feedback posisi → CCU → closed loop"],
+wiring_concept:{power:"Dari CCU (driver card)",signals:"Arus PWM 0-20A, feedback analog",grounding:"Engine block",shielding:"Kabel heavy-duty shielded"},
+measurement_points:["Resistansi coil","Arus PWM","Sinyal feedback","Timing injeksi (via indicator)"],
+normal_values:["Resistansi coil: 0,5-2Ω tipikal (VERIFY)","Arus PWM: 0-20A","Timing: sesuai load index"],
+reference_standards:["Manual MAN B&W ME-C (VERIFY)"],
+common_failure:["Coil open/short","Plunger macet","Kebocoran oli","Error feedback"],
+troubleshooting:[{symptom:"FIVA tidak inject",causes:["Coil open","Driver CCU","Tekanan fuel rendah","Plunger macet"],actions:["Ukur resistansi coil","Cek output CCU","Cek tekanan fuel","Bongkar & bersihkan"]}],
+case_study:"FIVA silinder #5 tidak bekerja. Investigasi: air masuk ke konektor heavy-duty. Dibersihkan + seal diganti, normal.",
+related_components:["CCU","ECU"],related_equipment:["Main Engine"],training_questions:[]},
+
+{id:"ME-004",name:"Engine Interface Control Unit (Safety)",short_name:"EICU",machinery:"Main Engine",machinery_section:"Panel terpisah — sistem safety",synonyms:["eicu","engine safety system","safety control unit"],category:"MECS",subcategory:"Safety",vessel:"50.000 DWT",
+electronical_role:"Mengawasi parameter safety main engine dan melakukan automatic shutdown saat parameter kritis. Berklasifikasi SIL.",
+electronical_components:[
+{name:"Safety PLC (SIL 2/3)",function:"Logika trip & shutdown",type:"Siemens S7-1500F / HIMA / Pilz"},
+{name:"Redundant Input Card",function:"Baca sensor kritis 2oo3 (2 out of 3)",type:"Input analog & digital"},
+{name:"Trip Output Relay",function:"Memutus fuel & starting air",type:"Safety relay redundant"},
+{name:"Watchdog Circuit",function:"Monitoring kesehatan CPU",type:"Hardware watchdog"}],
+signal_flow:["Sensor (Speed, tekanan LO, suhu CW, Overspeed, Oil mist) → EICU","EICU → Trip Logic (voting 2oo3) → Output Relay → Shutdown","EICU → Alarm ke AMS & Bridge","EICU → Slow Down (kondisi pre-trip)"],
+wiring_concept:{power:"24V DC redundant + UPS",signals:"4-20mA, RTD/TC, digital 24V, output relay",grounding:"Isolated ground untuk safety",shielding:"Shielded, terpisah dari kabel power"},
+measurement_points:["Tegangan supply 24V DC di EICU","Sinyal setiap sensor (arus loop)","Resistansi trip relay (NO/NC)","Test trip via built-in test"],
+normal_values:["Supply: 24V DC ±5%","Response time trip <1 detik","Redundansi voting 2oo3"],
+reference_standards:["IEC 61508 (SIL)","IEC 61511 (SIS)","SOLAS Ch. II-1 Reg. 27","Class Rules (NK, DNV, LR) — ESD"],
+common_failure:["Sensor fault","CPU fault","Relay lengket (welded)","Kabel putus"],
+troubleshooting:[
+{symptom:"False trip saat berlayar",causes:["Sensor drift","Kabel longgar","Error logika voting","EMI"],actions:["Bandingkan pembacaan sensor aktual vs setpoint","Cek kabel","Cek log EICU","Cek grounding"]},
+{symptom:"EICU tidak trip saat overspeed",causes:["Sensor fail","Logic bypass","Relay welded","Mode test ON"],actions:["Test sensor","Cek software","Cek relay","Cek mode test"]}],
+case_study:"Kapal 50.000 DWT mengalami false trip tekanan LO rendah. Investigasi: sensor tekanan LO drift karena usia. Dikalibrasi ulang, normal. Sensor tidak langsung diganti.",
+related_components:["Speed Pickup","Oil Mist Detector","Temperature Sensor","Pressure Transmitter"],related_equipment:["Main Engine","AMS","PMS"],
+training_questions:[{q:"Apa prinsip voting EICU?",options:["1oo1","2oo3","3oo3"],answer:1}]},
+
+{id:"ME-005",name:"Angle Encoder",machinery:"Main Engine",machinery_section:"Di free end crankshaft / camshaft",synonyms:["angle encoder","encoder sudut","crank angle sensor"],category:"MECS",subcategory:"Sensor",vessel:"50.000 DWT",
+electronical_role:"Memberikan referensi sudut crankshaft 0-360° ke ECU/CCU sebagai dasar timing injeksi dan exhaust valve.",
+electronical_components:[
+{name:"Disc Optik/Magnetik",function:"Menghasilkan pulse per derajat",type:"Incremental 360-3600 ppr"},
+{name:"Photodetector/Magnetic Reader",function:"Membaca pulse",type:"Optical atau Hall-effect"},
+{name:"Signal Amplifier",function:"Konversi ke TTL/HTL",type:"Line driver RS-422"}],
+signal_flow:["Putaran crankshaft → Disc encoder → Output pulse → Signal conditioner → ECU/CCU"],
+wiring_concept:{power:"24V DC",signals:"Pulse A/B/Z, diferensial RS-422",grounding:"Shielded, terisolasi dari power",shielding:"Shielded twisted pair"},
+measurement_points:["Amplitudo pulse output","Jumlah pulse per putaran","Fasa A/B","Pulse referensi Z"],
+normal_values:["Pulse: 5V TTL / 24V HTL","Pulse/putaran: 360 atau 3600","Akurasi: ±0,1°"],
+reference_standards:["Project guide MAN ME-C / Wärtsilä"],
+common_failure:["Optik terkontaminasi","Bearing aus","Kabel putus","Amplifier fault"],
+troubleshooting:[{symptom:"Timing tidak tepat",causes:["Encoder kotor","Pulse hilang","Kabel","Pulse referensi Z hilang"],actions:["Bersihkan disc","Cek pulse dengan osiloskop","Cek kabel shielded","Kalibrasi"]}],
+case_study:"Injection timing drift. Investigasi: encoder optik kotor oleh oil mist. Disc dibersihkan, normal.",
+related_components:["ECU","CCU"],related_equipment:["Main Engine"],training_questions:[]},
+
+{id:"ME-006",name:"Speed Pickup (Main Engine)",machinery:"Main Engine",machinery_section:"Di flywheel / gear ring",synonyms:["speed pickup","rpm sensor","magnetic pickup"],category:"MECS",subcategory:"Sensor",vessel:"50.000 DWT — 2 unit redundant",
+electronical_role:"Mendeteksi RPM main engine sebagai feedback governor dan input safety overspeed.",
+electronical_components:[
+{name:"Magnetic Coil Pickup",function:"Induksi saat gigi flywheel lewat",type:"Variable reluctance (VR)"},
+{name:"Kabel Shielded",function:"Transmisi sinyal ke ECU/EICU",type:"Twisted pair shielded"}],
+signal_flow:["Gigi flywheel → Magnetic pickup → AC sinusoidal → ECU/EICU → RPM"],
+wiring_concept:{power:"Pasif (membangkitkan sinyal sendiri)",signals:"AC sinusoidal 1-30V",grounding:"Shield dihubungkan satu sisi",shielding:"Shielded twisted pair"},
+measurement_points:["Tegangan AC output","Resistansi coil","Gap ke gigi flywheel","Frekuensi (Hz)"],
+normal_values:["Resistansi: 100-500Ω (VERIFY)","Output AC: >2V pada 100 RPM","Gap: 1-2 mm"],
+reference_standards:["Manual MAN / Wärtsilä (VERIFY)"],
+common_failure:["Gap terlalu besar","Kotor (serpihan logam)","Coil open","Kabel rusak"],
+troubleshooting:[{symptom:"RPM tidak terbaca",causes:["Gap salah","Kotor","Coil open","Kabel"],actions:["Ukur gap 1-2mm","Bersihkan","Ukur resistansi coil","Cek kabel"]}],
+case_study:"Governor hunting. Investigasi: 1 dari 2 speed pickup kotor serpihan logam. Dibersihkan + gap diatur ulang, normal.",
+related_components:["ECU","EICU","Governor"],related_equipment:["Main Engine"],training_questions:[]},
+
+// ===== AUX ENGINE =====
+{id:"AE-001",name:"Electronic Governor (Aux Engine)",machinery:"Auxiliary Engine",machinery_section:"Terpasang di engine, aktuator ke fuel rack",synonyms:["governor elektronik","electronic governor","speed controller aux"],category:"AECS",subcategory:"Controller",vessel:"50.000 DWT — 3× A/E 800-1000 kW",
+electronical_role:"Mengatur RPM aux engine untuk menjaga frekuensi 60 Hz saat beban berubah. Loop kontrol PID.",
+electronical_components:[
+{name:"Governor Controller",function:"Prosesor PID, output ke actuator",type:"Woodward 723/828 / Heinzmann / Regulateurs Europa"},
+{name:"Actuator",function:"Menggerakkan fuel rack",type:"Electric actuator atau hydraulic servo"},
+{name:"Speed Pickup",function:"Feedback RPM",type:"Magnetic pickup"},
+{name:"Load Sharing Module",function:"Untuk generator paralel",type:"Analog 0-5V / digital"}],
+signal_flow:["Speed Pickup → Governor Controller (feedback RPM)","Setpoint 60 Hz → Governor Controller","Sinyal Load Sharing ← PMS (untuk paralel)","Governor Controller → Actuator → Fuel Rack","Governor → mode Droop/Isochronous"],
+wiring_concept:{power:"24V DC",signals:"Pulse pickup (AC), output actuator 0-200mA DC, load share 0-5V",grounding:"Isolated",shielding:"Shielded untuk pickup dan load share"},
+measurement_points:["Frekuensi feedback RPM","Arus actuator","Tegangan load share","Frekuensi output generator"],
+normal_values:["Frekuensi: 60 Hz ±0,25%","Arus actuator: 0-200mA (VERIFY)","Droop: 3-5%"],
+reference_standards:["IACS UR M43","IEEE 45 (Recommended Practice for Electric Installations)","Class rules"],
+common_failure:["Hunting","Frekuensi turun","Actuator macet","Pickup kotor","Load sharing gagal"],
+troubleshooting:[
+{symptom:"Frekuensi turun saat beban naik",causes:["Setting droop","Actuator lag","Sistem fuel kurang","Sinyal load share"],actions:["Cek droop","Test respons actuator","Cek sistem fuel","Cek kabel load share"]},
+{symptom:"Frekuensi hunting ±2 Hz",causes:["Gain terlalu tinggi","Stabilitas kurang","Pickup kotor","Actuator mekanis"],actions:["Turunkan gain","Tambah stability","Bersihkan pickup","Cek actuator"]}],
+case_study:"Frekuensi A/E turun 5% saat load step 500 kW. Investigasi: setting droop 8% (terlalu tinggi). Diatur 4%, pemulihan <2 detik.",
+related_components:["Speed Pickup","Actuator","AVR","Load Sharing"],related_equipment:["Auxiliary Engine","Generator","PMS"],
+training_questions:[{q:"Frekuensi generator 60 Hz = berapa RPM untuk 4 kutub?",options:["1500","1800","3600"],answer:1},{q:"Setting droop tipikal?",options:["3-5%","10-20%","0%"],answer:0}]},
+
+{id:"AE-002",name:"Automatic Voltage Regulator",short_name:"AVR",machinery:"Auxiliary Engine",machinery_section:"Di panel generator / AVR box",synonyms:["avr","pengatur tegangan otomatis","voltage regulator"],category:"AECS",subcategory:"Controller",vessel:"50.000 DWT — 3× generator 440V/60Hz",
+electronical_role:"Mengatur tegangan output generator agar stabil 440V saat beban berubah. Kontrol closed-loop.",
+electronical_components:[
+{name:"Sensing Circuit",function:"Baca tegangan output generator",type:"Rectifier + comparator"},
+{name:"Reference & Comparator",function:"Bandingkan dengan setpoint",type:"Analog/digital"},
+{name:"PID Controller",function:"Koreksi error",type:"Internal"},
+{name:"Output Stage Thyristor/IGBT",function:"Driver arus eksitasi ke field",type:"SCR/IGBT"},
+{name:"Droop CT Input",function:"Untuk operasi paralel",type:"Interface CT"},
+{name:"UFRO (Under Frequency Roll-Off)",function:"Proteksi saat frekuensi turun",type:"Rangkaian proteksi"}],
+signal_flow:["Output Generator (U,V,W) → Sensing Transformer → AVR","PMG/Aux Winding → Power Supply AVR","AVR → Field Winding (eksitasi DC)","Droop CT → AVR (untuk paralel)","AVR ← Setpoint Voltage & potensio Stability"],
+wiring_concept:{power:"PMG 100-240V AC / permanent magnet generator",signals:"Sensing AC 380-440V, output DC field 0-5A",grounding:"Isolated",shielding:"Shielded untuk sensing"},
+measurement_points:["Tegangan sensing di terminal AVR","Output DC ke field","Resistansi field winding","Sinyal Droop CT","Setting Voltage, Stability, UFRO"],
+normal_values:["Tegangan 440V ±1%","Arus field 1-5A (VERIFY)","Stabilitas ±0,5%"],
+reference_standards:["IEC 60034-1","IEEE 421.4 (Guide for Excitation Systems)","Class rules"],
+common_failure:["Tegangan rendah/tinggi","Hunting","Over-excitation","Sensing hilang"],
+troubleshooting:[
+{symptom:"Tegangan turun 15%",causes:["Sensing longgar","Droop CT","Resistansi field","Setting AVR"],actions:["UKUR DULU: 1. Ukur sensing","2. Ukur output ke field","3. Cek droop CT","4. Cek resistansi field","5. Verifikasi setting"]},
+{symptom:"Tegangan tinggi (>460V)",causes:["Sensing hilang","Setting tinggi","AVR fault"],actions:["Cek sensing transformer","Turunkan setpoint","Test AVR"]}],
+case_study:"Generator 500 kVA tegangan turun 15% saat beban 80%. Investigasi: droop CT longgar. Setelah dikencangkan + kalibrasi ulang droop, tegangan pulih 100%.",
+related_components:["Exciter","Rotating Diode","PMG","Droop CT","Sensing Transformer"],related_equipment:["Generator","Auxiliary Engine","MSB"],
+training_questions:[{q:"Apa fungsi AVR?",options:["Atur frekuensi","Atur tegangan","Atur daya"],answer:1}]},
+
+{id:"AE-003",name:"Engine Safety Module (Aux)",short_name:"ESM-AE",machinery:"Auxiliary Engine",machinery_section:"Panel safety / lokal engine",synonyms:["engine safety","safety module aux"],category:"AECS",subcategory:"Safety",vessel:"50.000 DWT",
+electronical_role:"Memonitor parameter kritis aux engine dan shutdown otomatis saat anomali (tekanan LO rendah, suhu CW tinggi, overspeed).",
+electronical_components:[
+{name:"Safety Relay Logic",function:"Logika trip hardwire",type:"Pilz / Schneider Safety"},
+{name:"Input Cards",function:"Baca sensor kritis",type:"DI, AI, RTD/TC"},
+{name:"Trip Output Relay",function:"Putus fuel + tutup air flap",type:"Relay redundant"}],
+signal_flow:["Sensor → Safety Module → Trip Logic → Output Relay → Fuel shut + Air flap tutup","→ Alarm ke AMS"],
+wiring_concept:{power:"24V DC + UPS",signals:"4-20mA, RTD, digital",grounding:"Isolated safety",shielding:"Shielded"},
+measurement_points:["Supply 24V","Arus loop sensor","Test fungsi trip"],
+normal_values:["Respons trip <1 detik","Supply 24V ±5%"],
+reference_standards:["IEC 61508","Class rules"],
+common_failure:["False trip","Relay welded","Sensor fault"],
+troubleshooting:[{symptom:"Shutdown palsu",causes:["Sensor drift","Wiring","Relay"],actions:["Cek sensor aktual","Cek kabel","Cek relay"]}],
+case_study:"A/E trip karena tekanan LO rendah padahal aktual normal. Investigasi: setting pressure switch drift. Dikalibrasi, normal.",
+related_components:["Pressure Switch","Temperature Switch","Speed Pickup"],related_equipment:["Auxiliary Engine","AMS"],training_questions:[]},
+
+// ===== STEERING =====
+{id:"SG-001",name:"Steering Control System (Electronical)",machinery:"Steering Gear",machinery_section:"Bridge (kontrol) + Steering Gear Room (power)",synonyms:["steering control","kontrol kemudi","sistem kemudi elektronik"],category:"Steering",subcategory:"Control System",vessel:"50.000 DWT — Ram-type 2× silinder hidrolik",
+electronical_role:"Menerima perintah dari bridge (NFU/FU/autopilot), memproses via PLC, mengendalikan servo valve hidrolik, dan membaca feedback sudut rudder.",
+electronical_components:[
+{name:"Bridge Control Unit (BCU)",function:"Selector NFU/FU/Auto, input order",type:"Kongsberg / Anschütz / Sperry"},
+{name:"Steering Control PLC",function:"Logika kontrol, PID posisi rudder",type:"Siemens S7 / Marine PLC"},
+{name:"Servo Amplifier",function:"Driver servo valve",type:"Current driver 0-800mA"},
+{name:"Rudder Angle Feedback",function:"Sensor posisi rudder 2× redundant",type:"Potensiometer / encoder / synchro"},
+{name:"Autopilot Interface",function:"Integrasi dengan autopilot",type:"NMEA / analog"},
+{name:"Alarm & Monitoring",function:"Alarm ke AMS & bridge",type:"Relay + Modbus"},
+{name:"Emergency Steering Control",function:"Cadangan di steering gear room",type:"Manual + NFU"}],
+signal_flow:["Bridge (order NFU/FU) → BCU → Control PLC (via CAN/serial)","Autopilot → BCU → Control PLC (NMEA 0183)","Control PLC → Servo Amplifier → Servo Valve (arus 0-800mA)","Servo Valve → Silinder Hidrolik → Gerakan Rudder","Rudder Angle Feedback → PLC (closed loop)","PLC → Alarm & Monitoring (via Modbus)","PLC → Rudder Angle Indicator di bridge & wing"],
+wiring_concept:{power:"220V AC dari Emergency Switchboard + 24V DC kontrol",signals:"4-20mA / NMEA 0183 / CAN bus / analog ±10V",grounding:"Isolated control ground",shielding:"Shielded untuk feedback dan command"},
+measurement_points:["Input dari bridge (4-20mA atau CAN)","Output ke servo valve (0-800mA)","Tegangan feedback sudut rudder","Tekanan hidrolik (sensor 4-20mA)","Response time (order → feedback)"],
+normal_values:["Rudder ±35°","Respons <28 detik (35° satu sisi ke 30° sisi lain, acuan SOLAS)","Arus servo 0-800mA (VERIFY)","Feedback linier 0-10V atau 4-20mA"],
+reference_standards:["SOLAS Ch. II-1 Reg. 29-30","IMO Res. MSC.210(81) — Steering Gear","IMO Res. A.694(17) — Bridge equipment","Class rules (NK, DNV, LR)"],
+common_failure:["Tidak ada respons","Respons lambat","Error feedback","Servo valve fault","Power fail"],
+troubleshooting:[
+{symptom:"Steering tidak merespons dari bridge",causes:["Command bridge hilang","PLC fault","Servo valve macet","Power"],actions:["CEK SINYAL: 1. Cek input BCU (LED)","2. Cek output PLC ke servo","3. Ukur arus servo valve","4. Cek power 220V","5. Test di local steering"]},
+{symptom:"Rudder tidak sesuai order",causes:["Error feedback","Kalibrasi servo","Setting PID PLC"],actions:["Cek sinyal feedback","Kalibrasi servo","Tuning PID"]},
+{symptom:"Respons lambat",causes:["Tekanan hidrolik rendah","Servo valve tersumbat","Viskositas oli"],actions:["Cek tekanan","Cek servo valve","Cek suhu oli"]}],
+case_study:"Kapal 50.000 DWT keluar pelabuhan, steering tidak merespons. Investigasi: kabel sinyal BCU di bridge terkelupas oleh getaran. Kabel shielded diganti, test lulus.",
+related_components:["Rudder Angle Sensor","Servo Valve","Solenoid Valve","Autopilot","BCU"],related_equipment:["Steering Gear","HPU","Bridge"],
+training_questions:[{q:"Berapa waktu maksimum steering gear dari 35° satu sisi ke 30° sisi lain (SOLAS)?",options:["28 detik","1 menit","5 menit"],answer:0},{q:"Seberapa sering emergency steering dites?",options:["Sebelum berangkat / berkala sesuai aturan","Setahun sekali saja","Tidak perlu dites"],answer:0}]},
+
+{id:"SG-002",name:"Rudder Angle Feedback Sensor",short_name:"RAF",machinery:"Steering Gear",machinery_section:"Di rudder stock",synonyms:["rudder angle sensor","feedback rudder","rudder indicator"],category:"Steering",subcategory:"Sensor",vessel:"50.000 DWT",
+electronical_role:"Memberikan feedback posisi rudder aktual ke kontrol steering. Redundan 2× untuk safety.",
+electronical_components:[
+{name:"Potensiometer / Encoder",function:"Konversi sudut ke sinyal listrik",type:"Potensiometer / absolute encoder"},
+{name:"Transmitter",function:"Konversi ke 4-20mA atau 0-10V",type:"Signal converter"},
+{name:"Unit Redundan",function:"Feedback cadangan",type:"2× independen"}],
+signal_flow:["Posisi rudder → Feedback Sensor → Signal Conditioner → PLC → Repeater Bridge"],
+wiring_concept:{power:"24V DC",signals:"4-20mA / 0-10V",grounding:"Isolated",shielding:"Shielded"},
+measurement_points:["Output mA atau V pada 0°","Output pada +35°","Output pada -35°","Linearitas"],
+normal_values:["0° → 12 mA (tengah)","+35° → 20 mA","-35° → 4 mA","Linearitas ±1%"],
+reference_standards:["SOLAS Ch. V Reg. 19","IMO Res. MSC.210(81)"],
+common_failure:["Drift","Open circuit","Error linearitas","Aus mekanis"],
+troubleshooting:[{symptom:"Rudder indicator tidak sesuai aktual",causes:["Sensor drift","Kabel","Koneksi mekanis"],actions:["Ukur output di 0°","Kalibrasi","Cek coupling mekanis"]}],
+case_study:"Rudder indicator error 3°. Investigasi: coupling mekanis longgar. Dikencangkan, dikalibrasi, normal.",
+related_components:["Control PLC","BCU"],related_equipment:["Steering Gear"],training_questions:[]},
+
+// ===== CARGO =====
+{id:"CG-001",name:"Remote Valve Control System (Ballast/Cargo)",short_name:"RVCS",machinery:"Sistem Ballast / Kargo",machinery_section:"Valve di tangki ballast & kargo",synonyms:["remote valve control","kontrol valve","ballast valve","cargo valve"],category:"Cargo",subcategory:"Control System",vessel:"50.000 DWT — Bulk carrier: ±30 valve ballast / Tanker: ±40 valve kargo",
+electronical_role:"Kontrol valve ballast/kargo dari ECR/bridge via actuator electro-hydraulic atau electric dengan feedback posisi.",
+electronical_components:[
+{name:"Valve Control Unit (VCU)",function:"Driver lokal di tiap valve",type:"Electro-hydraulic / electric"},
+{name:"Central Control Console",function:"Antarmuka operator di ECR",type:"HMI + PLC"},
+{name:"Position Feedback Sensor",function:"Limit switch / proximity",type:"Indikasi Open/Close"},
+{name:"Hydraulic Power Pack (jika EH)",function:"Suplai oli untuk actuator",type:"Pompa ganda"},
+{name:"Jaringan Komunikasi",function:"PLC ke VCU",type:"Profibus / Modbus / CAN"}],
+signal_flow:["Operator (Console ECR) → PLC → Fieldbus → VCU → Actuator → Valve","Feedback posisi valve → VCU → PLC → Display","Alarm fault → AMS & Bridge"],
+wiring_concept:{power:"Motor 440V 3φ + kontrol 24V DC",signals:"Fieldbus (Profibus/Modbus/CAN) + feedback digital",grounding:"Isolated signal ground",shielding:"Kabel fieldbus shielded"},
+measurement_points:["Sinyal fieldbus","Supply 24V DC","Feedback limit switch","Arus motor (electric actuator)"],
+normal_values:["Waktu buka/tutup valve: 30-90 detik","Feedback: 2 limit switch (open/close)","Supply: 24V DC ±10%"],
+reference_standards:["IACS UR E10","Class rules kontrol ballast & kargo","MARPOL Annex I (tanker)"],
+common_failure:["Valve tidak merespons","Error feedback","Fieldbus fail","Tekanan hidrolik rendah"],
+troubleshooting:[
+{symptom:"Valve tidak merespons",causes:["Error fieldbus","VCU fault","Tekanan hidrolik","Power"],actions:["Cek LED fieldbus di VCU","Cek supply 24V","Cek tekanan hidrolik","Cek arus motor"]},
+{symptom:"Error feedback",causes:["Limit switch fault","Wiring","VCU"],actions:["Cek limit switch","Cek kabel","Cek VCU"]}],
+case_study:"Valve ballast #12 tidak merespons. Investigasi: resistor terminasi segmen fieldbus longgar. Dikencangkan, normal.",
+related_components:["Valve Actuator","Limit Switch","PLC","HMI"],related_equipment:["Sistem Ballast","Sistem Kargo"],training_questions:[]},
+
+{id:"CG-002",name:"Level Gauging System (Cargo/Ballast)",short_name:"LGS",machinery:"Tangki Kargo / Ballast",machinery_section:"Transmitter di setiap tangki",synonyms:["level gauging","sistem ukur level","cargo monitoring"],category:"Cargo",subcategory:"Sensor",vessel:"50.000 DWT — Bulk / Tanker dengan 5-10 tangki",
+electronical_role:"Mengukur level cairan di tangki secara kontinu dan mengirim ke ECR/bridge via antarmuka digital.",
+electronical_components:[
+{name:"Radar Level Transmitter (dP/Radar)",function:"Mengukur level non-kontak",type:"Radar 26 GHz / DP"},
+{name:"Signal Converter",function:"Konversi ke 4-20mA / Modbus",type:"Transmitter"},
+{name:"Junction Box",function:"Terminal & surge protection",type:"Ex-proof untuk tanker"},
+{name:"Central Unit",function:"Agregator ke HMI",type:"PLC / dedicated"}],
+signal_flow:["Level Tangki → Transmitter → 4-20mA / Modbus → Central Unit → HMI ECR/Bridge","→ Alarm High/High-High"],
+wiring_concept:{power:"24V DC loop power / 220V AC untuk radar",signals:"Loop 4-20mA / RS-485 / HART",grounding:"Isolated (Ex untuk tanker)",shielding:"Shielded & Ex-rated untuk tanker"},
+measurement_points:["Arus loop mA","Pembacaan di HMI","Bandingkan dengan manual gauge"],
+normal_values:["4 mA = kosong","20 mA = penuh","Akurasi ±5 mm (radar)"],
+reference_standards:["SOLAS Ch. II-2 (tanker)","IACS UR E10","IEC 60092-504"],
+common_failure:["Pembacaan drift","Error komunikasi","Antena kotor (radar)","Tersumbat"],
+troubleshooting:[{symptom:"Pembacaan drift",causes:["Fouling","Efek suhu","Kalibrasi"],actions:["Bersihkan antena","Kalibrasi","Cek kompensasi suhu"]}],
+case_study:"Pembacaan tangki kargo #3 tidak akurat. Investigasi: antena radar level kotor (residu kargo). Dibersihkan, normal.",
+related_components:["Radar Level","DP Transmitter","PLC","HMI"],related_equipment:["Tangki Kargo","Tangki Ballast"],training_questions:[]},
+
+{id:"CG-003",name:"Inert Gas System Control (Tanker)",short_name:"IGS",machinery:"Inert Gas System (Tanker)",machinery_section:"Deck & ECR — hanya untuk tanker",synonyms:["igs","inert gas system","sistem gas inert"],category:"Cargo",subcategory:"Safety Control",vessel:"50.000 DWT Product Tanker",
+electronical_role:"Mengontrol sistem inert gas (O2 <8%, tekanan positif) untuk mencegah ledakan di tangki kargo.",
+electronical_components:[
+{name:"O2 Analyzer",function:"Ukur kadar O2 di IG",type:"Paramagnetic / electrochemical"},
+{name:"Pressure Transmitter",function:"Ukur tekanan deck",type:"4-20mA"},
+{name:"Deck Water Seal Level",function:"Monitor water seal",type:"Level sensor"},
+{name:"IGS Control PLC",function:"Logika kontrol & interlock",type:"Safety PLC"},
+{name:"Blower Control",function:"Driver blower & valve",type:"Motor + VFD"}],
+signal_flow:["Gas buang Boiler/Generator → Scrubber → Blower → Deck Main → Tangki Kargo","O2 Analyzer → PLC → Alarm & recorder","Pressure Transmitter → PLC → Auto valve","PLC → VFD Blower & Deck Valve"],
+wiring_concept:{power:"440V + kontrol 24V",signals:"4-20mA, digital, Modbus",grounding:"Isolated",shielding:"Shielded"},
+measurement_points:["Kalibrasi O2 analyzer","Loop tekanan","Level water seal"],
+normal_values:["O2 <8%","Tekanan +0,5 s/d +2 kPa","Deck water seal normal"],
+reference_standards:["SOLAS Ch. II-2 Reg. 4.5.5","IMO FSS Code Ch. 15","IACS UR S26"],
+common_failure:["Pembacaan O2 tinggi","Blower trip","Water seal hilang","Valve macet"],
+troubleshooting:[{symptom:"O2 >8%",causes:["Analyzer drift","Udara masuk","Scrubber fault"],actions:["Kalibrasi O2 analyzer","Cek kebocoran","Cek scrubber"]}],
+case_study:"Alarm IGS O2 10%. Investigasi: O2 analyzer drift. Dikalibrasi dengan span gas, normal.",
+related_components:["O2 Analyzer","Pressure Transmitter","Level Switch","PLC"],related_equipment:["Boiler","Tangki Kargo"],training_questions:[]},
+
+// ===== SAFETY =====
+{id:"SF-001",name:"Fire Detection System (Addressable)",machinery:"Fire Safety",machinery_section:"Seluruh kapal — akomodasi & kamar mesin",synonyms:["fire detection","sistem deteksi kebakaran","fire alarm"],category:"Safety",subcategory:"Fire Detection",vessel:"50.000 DWT — sesuai FSS Code",
+electronical_role:"Deteksi dini kebakaran via detector addressable, alarm ke bridge & ECR, memicu sistem pelepasan pemadam.",
+electronical_components:[
+{name:"Fire Alarm Panel (Addressable)",function:"Loop controller, monitoring, alarm",type:"Addressable loop 24V"},
+{name:"Smoke Detector (Optical)",function:"Deteksi asap",type:"Addressable loop"},
+{name:"Heat Detector",function:"Deteksi kenaikan suhu",type:"Addressable"},
+{name:"Flame Detector (IR/UV)",function:"Deteksi api",type:"Addressable / 4-20mA"},
+{name:"Manual Call Point",function:"Pemicu manual",type:"Addressable"},
+{name:"Loop Isolator",function:"Isolasi short di loop",type:"Addressable"},
+{name:"Alarm Buzzer & Beacon",function:"Alarm lokal",type:"Loop-powered"}],
+signal_flow:["Detector → Loop (2-wire addressable) → Fire Panel → Alarm","Fire Panel → Alarm Bridge, Alarm ECR, PA System","Fire Panel → Logika pelepasan (CO2 / Water mist / Foam)","Fire Panel → VDR & PMS (via Modbus)"],
+wiring_concept:{power:"24V DC dari panel + battery backup",signals:"Loop 24V (data + power), protokol addressable",grounding:"Isolated loop",shielding:"Loop shielded"},
+measurement_points:["Tegangan loop 24V","Resistansi loop <20Ω","Alamat detector","Test alarm"],
+normal_values:["Tegangan loop 24V","Arus loop normal <10 mA","Maks 127 perangkat per loop"],
+reference_standards:["SOLAS Ch. II-2 Reg. 7","FSS Code Ch. 9","IEC 60092-504","IMO Res. MSC.98(73)"],
+common_failure:["Alarm palsu","Detector kotor","Loop putus","Panel fault"],
+troubleshooting:[
+{symptom:"Alarm palsu",causes:["Detector kotor","Kelembapan","EMI","Serangga"],actions:["Bersihkan detector","Cek kelembapan","Cek EMI","Pasang insect screen"]},
+{symptom:"Loop putus",causes:["Kabel putus","Detector terlepas","Isolator"],actions:["Cek kontinuitas loop","Pasang ulang detector","Cek LED isolator"]}],
+case_study:"Alarm palsu berulang di galley. Investigasi: smoke detector dekat area memasak. Direlokasi + ditambah heat detector, normal.",
+related_components:["Smoke Detector","Heat Detector","Manual Call Point","Isolator","Alarm Bell"],related_equipment:["Fire Alarm Panel","CO2 System"],
+training_questions:[{q:"Berapa maksimum perangkat addressable per loop (tipikal)?",options:["127","255","1000"],answer:0},{q:"Tegangan loop tipikal?",options:["12V","24V","48V"],answer:1}]},
+
+{id:"SF-002",name:"Oil Mist Detector",short_name:"OMD",machinery:"Main Engine / Aux Engine",machinery_section:"Crankcase",synonyms:["omd","oil mist detector","deteksi kabut oli"],category:"Safety",subcategory:"Engine Safety",vessel:"50.000 DWT — ME 6 silinder",
+electronical_role:"Deteksi kabut oli di crankcase sebagai indikasi awal bearing overheating / hot spot, memicu slow down atau shutdown.",
+electronical_components:[
+{name:"Sensor Optik per silinder",function:"Ukur densitas kabut oli",type:"Optical turbidity"},
+{name:"Sampling Unit",function:"Selector multi-channel",type:"Rotary valve + pompa"},
+{name:"Control Unit",function:"Bandingkan dengan referensi",type:"Komparator elektronik"},
+{name:"Alarm & Trip Relay",function:"Output slow down / shutdown",type:"Redundan"}],
+signal_flow:["Crankcase tiap silinder → Sensor optik → Sampling → Control Unit","Control Unit → Bandingkan dengan referensi (udara bersih)","Jika mist >setpoint → Alarm → Slow Down → Shutdown","→ Alarm ke AMS & EICU"],
+wiring_concept:{power:"24V DC",signals:"Analog dari sensor optik, output trip digital",grounding:"Isolated",shielding:"Shielded"},
+measurement_points:["Supply 24V","Sinyal sensor optik","Test alarm","Timing sampling"],
+normal_values:["Setpoint alarm: sesuai manual pabrikan (VERIFY)","Siklus sampling: setiap beberapa detik","Nol optik: udara bersih"],
+reference_standards:["IACS UR M10","SOLAS Ch. II-1 Reg. 27 (engine safety)","Class rules"],
+common_failure:["Optik kotor","Sampling valve macet","Alarm palsu","Sensor drift"],
+troubleshooting:[
+{symptom:"Alarm palsu oil mist",causes:["Lensa optik kotor","Sampling bocor","Kelembapan","Drift kalibrasi"],actions:["Bersihkan lensa","Cek sampling line","Kalibrasi","Test dengan referensi"]},
+{symptom:"OMD tidak trip saat hot spot",causes:["Sensor fail","Setpoint tinggi","Trip relay welded"],actions:["Test sensor","Turunkan setpoint","Cek trip relay"]}],
+case_study:"Alarm oil mist di silinder #4. Setelah engine stop, ditemukan main bearing #4 mulai aus. OMD tidak perlu diganti — OMD sudah berfungsi benar.",
+related_components:["Optical Sensor","Sampling Valve","Control Unit"],related_equipment:["Main Engine","EICU"],training_questions:[]},
+
+{id:"SF-003",name:"Emergency Shutdown System (ESD)",short_name:"ESD",machinery:"Safety System",machinery_section:"Seluruh kapal (terintegrasi)",synonyms:["esd","emergency shutdown","sistem shutdown darurat"],category:"Safety",subcategory:"Safety System",vessel:"50.000 DWT",
+electronical_role:"Mengintegrasikan trip dari berbagai sistem (fire, gas, EICU, kargo) untuk shutdown darurat terkoordinasi.",
+electronical_components:[
+{name:"Safety PLC (SIL 2/3)",function:"Logika ESD terpusat",type:"Siemens S7-1500F / HIMA / Pilz"},
+{name:"Redundant CPU",function:"High availability",type:"Dual CPU"},
+{name:"Input Cards (2oo3)",function:"Baca sinyal trip",type:"AI/DI redundan"},
+{name:"Output Cards (2oo3)",function:"Kontrol shutdown",type:"DO redundan"},
+{name:"HMI Safety",function:"Display & override",type:"Siemens Comfort / marine HMI"}],
+signal_flow:["Fire Alarm / Gas Detector / EICU / Kargo → ESD PLC (via Modbus / hardwired)","ESD PLC → Trip Logic → Output Relay","→ Fuel Shut-off, Ventilation Stop, Damper Close, CO2 Release, Generator Trip"],
+wiring_concept:{power:"24V DC redundan + UPS",signals:"Hardwired 24V, Modbus, output relay",grounding:"Isolated safety ground",shielding:"Shielded & terpisah dari power"},
+measurement_points:["Supply 24V","Sinyal input","Status output relay","Test trip"],
+normal_values:["Respons <1 detik","Berklasifikasi SIL 2 atau 3","Jalur redundan"],
+reference_standards:["IEC 61508","IEC 61511","SOLAS Ch. II-2 Reg. 4","FSS Code"],
+common_failure:["False trip","CPU fault","Relay weld","Komunikasi gagal"],
+troubleshooting:[{symptom:"ESD trip palsu",causes:["Sensor fault","Logika voting","EMI","Power"],actions:["Cek sumber trip","Cek voting","Cek grounding","Cek power"]}],
+case_study:"ESD trip palsu karena alarm kebakaran palsu di laundry. Investigasi: detector kotor. Dibersihkan, normal.",
+related_components:["Fire Panel","Gas Detector","EICU","Trip Relay"],related_equipment:["Main Engine","Generator","CO2 System"],training_questions:[]},
+
+{id:"SF-004",name:"Gas Detection System (Tanker)",short_name:"GDS",machinery:"Safety System (Tanker)",machinery_section:"Pump room, area kargo",synonyms:["gas detector","deteksi gas","hydrocarbon detector"],category:"Safety",subcategory:"Gas Detection",vessel:"50.000 DWT Product Tanker",
+electronical_role:"Deteksi kebocoran hydrocarbon di pump room dan area kargo, memicu alarm & shutdown.",
+electronical_components:[
+{name:"Sensor Catalytic Bead / IR",function:"Deteksi %LEL hydrocarbon",type:"Sensor LEL 0-100%"},
+{name:"Sample Line & Pump",function:"Sampling udara dari area",type:"Sampling kontinu"},
+{name:"Control Unit",function:"Multi-channel, alarm, trip",type:"Controller GDS dedicated"},
+{name:"Alarm Beacon",function:"Alarm lokal",type:"24V DC"}],
+signal_flow:["Titik sampling → Sensor → Control Unit → Alarm (20% LEL) & Trip (50% LEL)","→ Ventilasi pump room otomatis start","→ Alarm ke bridge & ECR"],
+wiring_concept:{power:"24V DC + 220V pompa sampling",signals:"4-20mA, digital",grounding:"Isolated",shielding:"Shielded"},
+measurement_points:["Arus loop 4-20mA","Kalibrasi zero gas","Kalibrasi span gas","Response time"],
+normal_values:["Range: 0-100% LEL","Alarm: 20% LEL","Trip: 50% LEL (VERIFY)","Respons <30 detik"],
+reference_standards:["SOLAS Ch. II-2 Reg. 4.5 (tanker)","IEC 60079 (Explosive atmosphere)","IACS UR E10"],
+common_failure:["Sensor keracunan (poisoned)","Zero drift","Sampling line tersumbat","Pompa rusak"],
+troubleshooting:[{symptom:"Pembacaan sensor drift",causes:["Poisoning","Zero drift","Filter kotor"],actions:["Kalibrasi zero","Ganti sensor jika poisoned","Ganti filter"]}],
+case_study:"Alarm GDS 30% LEL di pump room. Investigasi: alarm palsu karena zero drift. Dikalibrasi span dengan gas standar, normal.",
+related_components:["Sensor","Sampling Pump","Control Unit"],related_equipment:["Sistem Kargo","ESD"],training_questions:[]},
+
+// ===== NAVIGATION =====
+{id:"NV-001",name:"Gyrocompass",machinery:"Navigasi",machinery_section:"Bridge / Master unit + Repeater",synonyms:["gyro","gyrocompass","kompas giro"],category:"Navigation",subcategory:"Sensor",vessel:"50.000 DWT — sesuai SOLAS Ch. V",
+electronical_role:"Sumber heading utama untuk radar, ECDIS, AIS, autopilot.",
+electronical_components:[
+{name:"Gyrosphere",function:"Sensor giroskop",type:"Fluid-suspended gyro"},
+{name:"Control Unit",function:"Elektronik pengolah",type:"Amplifier & follow-up"},
+{name:"Repeater Interface",function:"Distribusi heading",type:"Synchro / step / NMEA"},
+{name:"NMEA Output Board",function:"Format NMEA 0183",type:"HDT, HDM"}],
+signal_flow:["Gyrosphere → Control Unit → Output Repeater","→ Radar, ECDIS, AIS, Autopilot (NMEA 0183 / synchro)"],
+wiring_concept:{power:"220V AC + kontrol 24V",signals:"Synchro 90V / Step / NMEA 0183",grounding:"Isolated",shielding:"Shielded"},
+measurement_points:["Output NMEA (kalimat HDT)","Sinyal synchro","Perbandingan repeater"],
+normal_values:["Waktu settle: ±4 jam","Error: <0,5°","Putaran gyrosphere: ±24.000 RPM"],
+reference_standards:["SOLAS Ch. V Reg. 19","IMO Res. A.424(XI)","IEC 61162 (NMEA)"],
+common_failure:["Error heading","Tidak settle","Sinyal hilang","Bearing aus"],
+troubleshooting:[{symptom:"Error heading 5°",causes:["Setting latitude salah","Input speed salah","Gyro drift"],actions:["Set latitude","Cek input speed log","Kalibrasi"]}],
+case_study:"Error heading gyro 5° setelah bunkering di Singapura (lat 1°N). Investigasi: setting latitude masih 0°. Diset 1°N, settle, normal.",
+related_components:["Repeater","NMEA Distributor"],related_equipment:["Radar","ECDIS","Autopilot","AIS"],training_questions:[]},
+
+{id:"NV-002",name:"Autopilot",machinery:"Navigasi",machinery_section:"Bridge",synonyms:["autopilot","auto pilot","pengemudi otomatis"],category:"Navigation",subcategory:"Control",vessel:"50.000 DWT",
+electronical_role:"Mengontrol steering gear secara otomatis untuk mempertahankan heading sesuai setpoint.",
+electronical_components:[
+{name:"Control Unit",function:"PID controller heading",type:"Kongsberg / Anschütz / Sperry"},
+{name:"Heading Interface",function:"Terima NMEA dari gyro",type:"NMEA 0183"},
+{name:"Rudder Feedback Interface",function:"Terima dari RAF",type:"Analog"},
+{name:"Order Output",function:"Kirim ke steering control",type:"Analog / CAN"},
+{name:"Mode Selector",function:"Auto/Manual/NFU",type:"Switch"}],
+signal_flow:["Gyro (NMEA HDT) → Autopilot (heading aktual)","Setpoint heading ← Operator","Autopilot PID → Order rudder → Steering Control","Rudder Feedback → Autopilot (closed loop)","Speed Log (NMEA) → Autopilot (parameter adaptif)"],
+wiring_concept:{power:"220V AC + 24V DC",signals:"NMEA 0183, analog, CAN",grounding:"Isolated",shielding:"Shielded"},
+measurement_points:["Input NMEA","Order rudder output","Heading error","Respons"],
+normal_values:["Heading error <1°","Order rudder 0-35°","Penyesuaian cuaca"],
+reference_standards:["SOLAS Ch. V Reg. 19","IMO Res. MSC.64(67)","IEC 61162"],
+common_failure:["Heading hilang","Error rudder feedback","Tuning PID off","Off-course"],
+troubleshooting:[{symptom:"Autopilot off-course",causes:["Error gyro","Rudder feedback","Tuning PID","Input speed"],actions:["Cek gyro","Cek RAF","Tuning PID","Cek speed log"]}],
+case_study:"Kapal off-course 3°. Investigasi: error heading gyro. Setelah gyro dikalibrasi, autopilot normal.",
+related_components:["Gyro Interface","RAF","Steering Control"],related_equipment:["Gyrocompass","Steering Gear"],training_questions:[]},
+
+{id:"NV-003",name:"ECDIS",machinery:"Navigasi",machinery_section:"Bridge (chart table)",synonyms:["ecdis","electronic chart display","peta elektronik"],category:"Navigation",subcategory:"Display",vessel:"50.000 DWT — sesuai SOLAS Ch. V Reg. 19",
+electronical_role:"Menampilkan posisi kapal dan rute di peta elektronik ENC, dengan alarm navigasi.",
+electronical_components:[
+{name:"Marine Computer",function:"Prosesor & penyimpanan ENC",type:"Industrial PC"},
+{name:"Sensor Interface",function:"Terima NMEA dari GPS, Gyro, Log, AIS, Radar",type:"NMEA multiplexer"},
+{name:"Display",function:"Tampilan peta",type:"Monitor berstandar ECDIS"},
+{name:"UPS",function:"Daya cadangan",type:"Marine UPS"},
+{name:"Alarm Panel",function:"Alarm navigasi",type:"Terintegrasi"}],
+signal_flow:["GPS (GGA/RMC) → ECDIS (posisi)","Gyro (HDT) → ECDIS (heading)","Speed Log (VBW) → ECDIS (kecepatan)","AIS (VDM) → ECDIS (target)","Radar (target ARPA) → ECDIS (overlay)","Echo Sounder (DPT) → ECDIS (kedalaman)","ECDIS → Alarm & Monitoring"],
+wiring_concept:{power:"220V AC dari ESB + UPS",signals:"NMEA 0183 (RS-422), Ethernet",grounding:"Isolated",shielding:"NMEA shielded"},
+measurement_points:["Sinyal input NMEA","Status sensor di ECDIS","Tanggal validitas ENC"],
+normal_values:["Baud NMEA: 4800 / 38400","ENC: edisi terbaru","Semua sensor OK"],
+reference_standards:["SOLAS Ch. V Reg. 19","IMO Res. MSC.232(82)","IHO S-52, S-57, S-63","IEC 61174 (ECDIS performance)","IEC 61162 (NMEA)"],
+common_failure:["Sensor loss","Error chart","Software hang","HDD fail"],
+troubleshooting:[
+{symptom:"ECDIS sensor loss",causes:["Kabel NMEA","Multiplexer","Sensor"],actions:["Cek kabel","Cek multiplexer","Cek sensor"]},
+{symptom:"ENC kedaluwarsa",causes:["Belum di-update","Langganan habis"],actions:["Update ENC dari provider","Perpanjang langganan"]}],
+case_study:"ECDIS sensor loss saat berlayar. Investigasi: kabel NMEA ke multiplexer terlepas. Disambung ulang, normal.",
+related_components:["GPS","Gyrocompass","Speed Log","AIS","Radar"],related_equipment:["Bridge System","Autopilot"],
+training_questions:[{q:"Input sensor ECDIS umumnya via?",options:["NMEA 0183","RS-232 paralel","Analog"],answer:0}]},
+
+{id:"NV-004",name:"AIS",machinery:"Navigasi",machinery_section:"Bridge",synonyms:["ais","automatic identification system"],category:"Navigation",subcategory:"Communication",vessel:"50.000 DWT — sesuai SOLAS Ch. V",
+electronical_role:"Mengirim identitas, posisi, dan data voyage via VHF ke kapal lain & stasiun pantai.",
+electronical_components:[
+{name:"VHF Transceiver",function:"Transmit/receive pesan AIS",type:"VHF marine"},
+{name:"GPS Receiver (built-in)",function:"Posisi & timing",type:"GPS AIS"},
+{name:"Control Unit",function:"Protokol AIS",type:"Marine computer"},
+{name:"Pilot Plug",function:"Antarmuka ke pilot",type:"RS-422"}],
+signal_flow:["GPS → AIS Control Unit (posisi)","Gyro (HDT) → AIS (heading)","Speed Log → AIS (kecepatan)","AIS Control Unit → VHF Transceiver → Antena VHF (broadcast)","AIS → ECDIS/Radar via NMEA (VDM)"],
+wiring_concept:{power:"220V AC + kontrol 24V",signals:"NMEA 0183, RF VHF",grounding:"Isolated",shielding:"Shielded untuk NMEA, coax untuk RF"},
+measurement_points:["GPS fix","Status TX","Status RX","Data MMSI","Output NMEA"],
+normal_values:["Jangkauan: 20-40 NM","Laju transmit: 2-10 detik","Frekuensi: VHF Ch 87B/88B"],
+reference_standards:["SOLAS Ch. V Reg. 19","IMO Res. MSC.74(69)","ITU-R M.1371"],
+common_failure:["Tidak transmit","Data salah","GPS loss","VSWR antena"],
+troubleshooting:[{symptom:"AIS tidak transmit",causes:["GPS loss","Antena","Unit","Setting MMSI"],actions:["Cek input GPS","Cek VSWR antena","Cek unit","Cek MMSI"]}],
+case_study:"Kapal lain tidak melihat kita di AIS. Investigasi: VSWR antena VHF tinggi karena konektor korosi. Konektor diganti, normal.",
+related_components:["GPS Module","VHF Antenna","NMEA Splitter"],related_equipment:["VHF","ECDIS","Radar"],training_questions:[]},
+
+{id:"NV-005",name:"Speed Log (Doppler)",machinery:"Navigasi",machinery_section:"Bridge + transducer lambung",synonyms:["speed log","doppler log","log kecepatan"],category:"Navigation",subcategory:"Sensor",vessel:"50.000 DWT",
+electronical_role:"Mengukur kecepatan kapal (STW/SOG) untuk radar, ECDIS, autopilot.",
+electronical_components:[
+{name:"Transducer",function:"Memancar & menerima ultrasonik",type:"Doppler / correlation"},
+{name:"Processing Unit",function:"Hitung kecepatan",type:"Elektronik"},
+{name:"Display",function:"Tampilkan kecepatan",type:"Display bridge"},
+{name:"NMEA Output",function:"Distribusi ke ECDIS/Radar",type:"NMEA 0183"}],
+signal_flow:["Transducer (lambung) → Processing Unit → NMEA (VBW, VHW) → ECDIS, Radar, Autopilot, AIS"],
+wiring_concept:{power:"220V AC + 24V",signals:"Analog dari transducer, output NMEA",grounding:"Isolated",shielding:"Coax shielded"},
+measurement_points:["Kekuatan sinyal","Pembacaan kecepatan","Output NMEA"],
+normal_values:["Akurasi: ±1%","Range: -5 s/d +30 knot (maju/mundur)"],
+reference_standards:["SOLAS Ch. V Reg. 19","IMO Res. A.824","IEC 61023"],
+common_failure:["Tidak ada sinyal","Pembacaan drift","Transducer fouled"],
+troubleshooting:[{symptom:"Kecepatan tidak terbaca",causes:["Transducer fouled","Kabel","Unit"],actions:["Cek transducer (saat docking)","Cek kabel","Cek unit"]}],
+case_study:"Speed log drift 5%. Investigasi: transducer fouled. Dibersihkan saat docking, normal.",
+related_components:["Transducer","NMEA Distributor"],related_equipment:["Bridge System"],training_questions:[]},
+
+{id:"NV-006",name:"Bridge Navigational Watch Alarm System",short_name:"BNWAS",machinery:"Navigasi",machinery_section:"Bridge",synonyms:["bnwas","watch alarm","bridge alarm"],category:"Navigation",subcategory:"Safety",vessel:"50.000 DWT — sesuai SOLAS Ch. V Reg. 19",
+electronical_role:"Memantau aktivitas OOW (Officer of the Watch) dan membunyikan alarm jika OOW tidak merespons.",
+electronical_components:[
+{name:"Reset Button",function:"OOW acknowledge",type:"Bridge, wing, kabin"},
+{name:"Control Unit",function:"Timer & logika",type:"Elektronik"},
+{name:"Alarm Buzzer",function:"Alarm bridge",type:"24V DC"},
+{name:"Motion Sensor (opsional)",function:"Deteksi gerakan OOW",type:"PIR / radar-based"},
+{name:"Emergency Call",function:"Panggil OOW cadangan",type:"Output relay"}],
+signal_flow:["Timer aktif → OOW reset dalam X menit → OK","Jika tidak reset → Alarm bridge (tahap 1)","→ Alarm kabin (tahap 2) → Crew cadangan","→ Log ke VDR"],
+wiring_concept:{power:"24V DC + battery backup",signals:"Digital",grounding:"Isolated",shielding:"N/A"},
+measurement_points:["Setting timer","Test alarm","Battery backup"],
+normal_values:["Interval reset: 3-12 menit (dapat diatur)","Alarm tahap 1 & 2","Battery backup 6 jam"],
+reference_standards:["SOLAS Ch. V Reg. 19","IMO Res. MSC.128(75)","IEC 62616"],
+common_failure:["Alarm palsu","Buzzer fault","Timer drift","Battery lemah"],
+troubleshooting:[{symptom:"Alarm BNWAS palsu",causes:["Setting timer","OOW tidak reset","Wiring"],actions:["Cek setting","Cek reset button","Cek wiring"]}],
+case_study:"BNWAS alarm terus-menerus. Investigasi: reset button di kabin OOW rusak. Button diganti, normal.",
+related_components:["Reset Button","Alarm Buzzer"],related_equipment:["Bridge System","VDR"],training_questions:[]},
+
+{id:"NV-007",name:"Voyage Data Recorder",short_name:"VDR",machinery:"Navigasi",machinery_section:"Bridge + protected capsule",synonyms:["vdr","voyage data recorder","kotak hitam kapal"],category:"Navigation",subcategory:"Recording",vessel:"50.000 DWT — SOLAS Ch. V Reg. 20",
+electronical_role:"Merekam data navigasi, audio bridge, dan gambar radar untuk investigasi kecelakaan.",
+electronical_components:[
+{name:"Data Acquisition Unit",function:"Mengumpulkan data dari berbagai sensor",type:"Marine computer"},
+{name:"Audio Recorder",function:"Rekam audio bridge (VHF, mic)",type:"Digital audio"},
+{name:"Radar Interface",function:"Rekam gambar radar",type:"Radar capture card"},
+{name:"Protective Capsule",function:"Penyimpanan tahan api & tenggelam",type:"Crash-protected memory"},
+{name:"NMEA Buffer",function:"Isolasi & split NMEA",type:"Multiplexer"}],
+signal_flow:["GPS, Gyro, Log, AIS, Radar, VHF, Echo, Rudder, Telegraph → VDR","→ Rekam ke capsule + HDD backup","→ Data tersimpan minimal 12 jam (SOLAS)","→ Software replay untuk investigasi"],
+wiring_concept:{power:"220V AC + 24V + UPS",signals:"NMEA 0183, Ethernet, video, audio",grounding:"Isolated",shielding:"Shielded"},
+measurement_points:["Status rekaman","Input sensor","Battery capsule","Test rekaman audio"],
+normal_values:["Rekaman: kontinu 12+ jam","Capsule: test tahunan","Battery capsule: 2 tahun"],
+reference_standards:["SOLAS Ch. V Reg. 20","IMO Res. MSC.333(90)","IEC 61996"],
+common_failure:["Rekaman berhenti","Sensor loss","Battery capsule lemah","HDD fail"],
+troubleshooting:[{symptom:"VDR tidak merekam",causes:["Power","HDD fail","Capsule","Data acquisition"],actions:["Cek power","Cek HDD","Cek capsule","Test rekaman"]}],
+case_study:"PSC menemukan VDR tidak merekam. Investigasi: HDD fail. HDD diganti, test rekaman lulus.",
+related_components:["Data Acquisition Unit","Capsule","Radar Capture Card"],related_equipment:["Bridge System","GMDSS"],
+training_questions:[{q:"Berapa jam minimum data VDR harus tersimpan (SOLAS)?",options:["6 jam","12 jam","24 jam"],answer:1}]},
+
+// ===== COMMUNICATION =====
+{id:"CM-001",name:"GMDSS System",machinery:"Komunikasi",machinery_section:"Bridge (radio room)",synonyms:["gmdss","global maritime distress","sistem distress"],category:"Communication",subcategory:"Distress",vessel:"50.000 DWT — Sea Area A3 tipikal",
+electronical_role:"Kumpulan perangkat untuk distress alert, koordinasi SAR, dan komunikasi umum.",
+electronical_components:[
+{name:"VHF DSC",function:"Distress VHF Ch 70",type:"VHF marine DSC"},
+{name:"MF/HF DSC",function:"Distress & GMDSS jarak jauh",type:"Radio MF/HF DSC"},
+{name:"Inmarsat-C / Fleet",function:"Distress satelit & email",type:"Terminal Inmarsat"},
+{name:"NAVTEX Receiver",function:"Terima MSI",type:"MF 518 kHz"},
+{name:"EPIRB",function:"Emergency position beacon",type:"406 MHz Cospas-Sarsat"},
+{name:"SART",function:"Radar transponder",type:"9 GHz"},
+{name:"Two-way VHF (portable)",function:"Komunikasi survivor",type:"VHF portable"},
+{name:"Battery Backup",function:"Daya cadangan",type:"Battery GMDSS 24V DC"}],
+signal_flow:["Antena → Transceiver VHF/MF/HF → DSC Controller → Operator","Inmarsat → Satelit → Stasiun Bumi","EPIRB → Satelit → RCC","SART → Radar"],
+wiring_concept:{power:"220V AC + battery backup 24V DC",signals:"RF coax, NMEA, DSC digital",grounding:"RF ground & isolasi",shielding:"Coax & shielded"},
+measurement_points:["Tegangan battery","Radio check","Test DSC","VSWR antena"],
+normal_values:["Battery: 24V DC, backup 6 jam (jika sumber utama & darurat tidak tersedia, acuan SOLAS)","Radio check: via stasiun pantai","Battery EPIRB: ±5 tahun"],
+reference_standards:["SOLAS Ch. IV","IMO Res. A.702(17)","ITU Radio Regulations"],
+common_failure:["Battery lemah","VSWR antena","Radio fault","DSC tidak merespons"],
+troubleshooting:[{symptom:"Backup battery GMDSS <6 jam",causes:["Battery menua","Charger fault","Beban test"],actions:["Load test battery","Cek charger","Ganti battery jika perlu"]}],
+case_study:"Backup battery GMDSS hanya 2 jam. Investigasi: usia battery 5 tahun. Battery diganti, test lulus.",
+related_components:["VHF","MF/HF","Inmarsat","EPIRB","SART","NAVTEX","Battery"],related_equipment:["Bridge System","VDR"],
+training_questions:[{q:"Berapa jam minimum backup battery GMDSS?",options:["3 jam","6 jam","12 jam"],answer:1}]},
+
+{id:"CM-002",name:"VHF Radio",machinery:"Komunikasi",machinery_section:"Bridge",synonyms:["vhf","vhf radio","radio vhf"],category:"Communication",subcategory:"Radio",vessel:"50.000 DWT",
+electronical_role:"Komunikasi suara & DSC jarak dekat (line of sight).",
+electronical_components:[
+{name:"Transceiver",function:"TX/RX VHF",type:"VHF marine 156-174 MHz"},
+{name:"DSC Controller",function:"Digital Selective Calling",type:"Built-in"},
+{name:"Antenna Coax",function:"Transmisi RF",type:"RG-213 / RG-8"},
+{name:"Control Head",function:"Antarmuka operator",type:"Remote mount"}],
+signal_flow:["Mic/Keyboard → Transceiver → Coax antena → Antena (TX)","Antena → Transceiver → Speaker (RX)","DSC → Alarm otomatis / watch Ch 70"],
+wiring_concept:{power:"24V DC + battery backup",signals:"RF coax 50Ω, NMEA untuk input GPS",grounding:"RF ground",shielding:"Coax"},
+measurement_points:["Daya output (25W)","VSWR antena","Supply DC 24V","Test DSC"],
+normal_values:["Daya: maks 25W","Kanal: Ch 16, Ch 70 DSC","Frekuensi: 156-174 MHz"],
+reference_standards:["SOLAS Ch. IV","ITU-R M.493 (DSC)","IEC 61097"],
+common_failure:["Tidak bisa TX","Tidak bisa RX","VSWR tinggi","Mic fail"],
+troubleshooting:[{symptom:"VHF tidak transmit",causes:["VSWR antena","Coax","Transceiver","Power"],actions:["Ukur VSWR","Cek coax","Cek unit","Cek power 24V"]}],
+case_study:"Daya TX VHF turun. Investigasi: VSWR 3:1 karena air masuk konektor. Konektor + seal diganti, normal.",
+related_components:["Antenna","Coax","Battery Backup"],related_equipment:["GMDSS","Bridge System"],training_questions:[]},
+
+{id:"CM-003",name:"NMEA 0183 Network",machinery:"Komunikasi",machinery_section:"Seluruh bridge & ECR",synonyms:["nmea","nmea 0183","nmea network"],category:"Communication",subcategory:"Protocol",vessel:"50.000 DWT — seluruh sistem navigasi",
+electronical_role:"Protokol komunikasi serial standar untuk pertukaran data antar perangkat navigasi.",
+electronical_components:[
+{name:"NMEA Multiplexer",function:"Gabung banyak talker ke listener",type:"Buffer RS-422"},
+{name:"NMEA Splitter",function:"Distribusi 1 talker ke banyak listener",type:"Driver RS-422"},
+{name:"Junction Box",function:"Terminal & shielding",type:"Marine grade"}],
+signal_flow:["Talker (GPS, Gyro) → NMEA A/B → Multiplexer → Listener (ECDIS, Radar, AIS)"],
+wiring_concept:{power:"N/A (disuplai oleh talker)",signals:"Diferensial RS-422 (A/B), 4800-38400 baud",grounding:"Isolated & shield dihubungkan satu sisi",shielding:"Shielded twisted pair"},
+measurement_points:["Tegangan diferensial (2-5V)","Baud rate","Kalimat data (HDT, GGA)"],
+normal_values:["Baud: 4800 (standar) / 38400 (AIS/ECDIS)","Tegangan: 2-5V diferensial","Data: 8N1 atau 8N2"],
+reference_standards:["IEC 61162-1 (NMEA 0183)","IEC 61162-2 (High speed)"],
+common_failure:["Tidak ada data","Data rusak (garbled)","Shield loop","Terminasi"],
+troubleshooting:[{symptom:"NMEA tidak ada data",causes:["Kabel A/B terbalik","Kabel putus","Baud salah","Talker fail"],actions:["Cek polaritas A/B","Cek kontinuitas","Cek setting baud","Test talker lain"]}],
+case_study:"ECDIS tidak menerima heading dari gyro. Investigasi: kabel NMEA A/B terbalik. Dibalik, normal.",
+related_components:["NMEA Multiplexer","Splitter","Junction Box"],related_equipment:["ECDIS","Radar","AIS","Gyro","GPS"],
+training_questions:[{q:"Baud rate standar NMEA 0183?",options:["4800","9600","19200"],answer:0},{q:"Tegangan diferensial sinyal NMEA?",options:["1V","2-5V","12V"],answer:1}]},
+
+// ===== SENSORS =====
+{id:"SN-001",name:"PT100 RTD Sensor",short_name:"PT100",machinery:"Semua machinery",machinery_section:"Bearing, exhaust, cooling water, oli",synonyms:["pt100","rtd","sensor suhu","temperature sensor"],category:"Sensors",subcategory:"Temperature",vessel:"50.000 DWT — ratusan PT100",
+electronical_role:"Mengukur suhu dengan akurasi tinggi, antarmuka ke PLC/AMS via transmitter atau langsung modul RTD.",
+electronical_components:[
+{name:"Elemen Platinum",function:"Elemen sensing 100Ω @ 0°C",type:"Thin film / wire wound"},
+{name:"Protection Sheath",function:"Probe stainless steel",type:"316 SS"},
+{name:"Kabel",function:"Transmisi sinyal",type:"2/3/4 kawat, shielded"},
+{name:"Konektor",function:"Terminal ke junction box",type:"Marine connector"}],
+signal_flow:["Suhu → perubahan resistansi PT100 → Transmitter (4-20mA) → PLC/AMS","Atau langsung: PT100 → Modul RTD (3-wire)"],
+wiring_concept:{power:"Pasif (eksitasi dari transmitter/modul)",signals:"Resistansi 100-200Ω (0-266°C)",grounding:"Isolated",shielding:"Shielded"},
+measurement_points:["Resistansi @ 0°C (100Ω)","Resistansi @ 100°C (138,5Ω)","Kompensasi 3-wire"],
+normal_values:["100Ω @ 0°C","138,51Ω @ 100°C","Akurasi Class A ±0,15°C @ 0°C"],
+reference_standards:["IEC 60751","ITS-90"],
+common_failure:["Open circuit (∞Ω)","Short circuit (0Ω)","Drift","Error kompensasi 3-wire"],
+troubleshooting:[
+{symptom:"Pembacaan 9999 (maks)",causes:["Open circuit","Kabel putus","Sensor fail"],actions:["Ukur resistansi (∞ = open)","Cek kabel","Ganti sensor"]},
+{symptom:"Pembacaan tidak akurat 2-3°C",causes:["Kompensasi 3-wire","Drift","Kabel ekstensi"],actions:["Cek konfigurasi wiring","Kalibrasi ice bath","Ganti sensor"]}],
+case_study:"Suhu exhaust silinder #3 terbaca 9999. Investigasi: kabel PT100 putus di junction box. Disambung + diisolasi, normal.",
+related_components:["Transmitter","RTD Module","Junction Box"],related_equipment:["Main Engine","Boiler","Purifier","Cold Storage"],
+training_questions:[{q:"Resistansi PT100 @ 0°C?",options:["100Ω","0Ω","1000Ω"],answer:0},{q:"Resistansi PT100 @ 100°C?",options:["100Ω","138,5Ω","200Ω"],answer:1}]},
+
+{id:"SN-002",name:"Thermocouple Type K",short_name:"TC-K",machinery:"Exhaust, furnace, boiler",machinery_section:"Gas buang, furnace",synonyms:["thermocouple","tc","type k"],category:"Sensors",subcategory:"Temperature",vessel:"50.000 DWT",
+electronical_role:"Mengukur suhu tinggi exhaust gas M/E, boiler, incinerator.",
+electronical_components:[
+{name:"Junction",function:"Titik ukur (hot junction)",type:"Chromel-Alumel"},
+{name:"Compensating Cable",function:"Ekstensi ke transmitter",type:"Kabel tipe K (kuning)"},
+{name:"Cold Junction Compensation",function:"Di transmitter/modul",type:"Elektronik"}],
+signal_flow:["Hot Junction → output mV → Compensating Cable → CJC Transmitter → 4-20mA → PLC"],
+wiring_concept:{power:"Pasif",signals:"mV DC (Type K: ~41 μV/°C)",grounding:"Isolated (floating)",shielding:"Kabel kompensasi shielded"},
+measurement_points:["Output mV","Suhu cold junction","Bandingkan dengan suhu acuan"],
+normal_values:["Range: -200 s/d 1372°C (Type K)","Seebeck: ~41 μV/°C","Akurasi: ±2,5°C atau 0,75%"],
+reference_standards:["IEC 60584","ASTM E230","ITS-90"],
+common_failure:["Open circuit","Kabel ekstensi salah","Cold junction fault"],
+troubleshooting:[{symptom:"Pembacaan drift",causes:["Salah tipe kabel","Cold junction","Menua"],actions:["Cek tipe kabel (K vs J)","Cek CJC","Kalibrasi"]}],
+case_study:"TC exhaust M/E lebih rendah dari silinder lain. Investigasi: TC type J terpasang (seharusnya K). TC diganti, normal.",
+related_components:["Transmitter","TC Module","Compensating Cable"],related_equipment:["Main Engine","Boiler","Incinerator"],training_questions:[]},
+
+{id:"SN-003",name:"Pressure Transmitter 4-20mA",short_name:"PT",machinery:"Semua sistem tekanan",machinery_section:"Pipa, tangki, vessel",synonyms:["pressure transmitter","pt","transmitter tekanan"],category:"Sensors",subcategory:"Pressure",vessel:"50.000 DWT",
+electronical_role:"Mengubah tekanan menjadi 4-20 mA untuk kontrol & monitoring.",
+electronical_components:[
+{name:"Sensor Diaphragm",function:"Deteksi tekanan",type:"Piezoresistive / capacitive"},
+{name:"Amplifier",function:"Konversi ke 4-20mA",type:"Rangkaian analog"},
+{name:"Housing",function:"Enclosure IP66/67",type:"Stainless steel"},
+{name:"Terminal Block",function:"Koneksi loop",type:"Screw terminal"}],
+signal_flow:["Tekanan → Diaphragm → Strain gauge → Amplifier → Loop 4-20 mA → PLC/AMS"],
+wiring_concept:{power:"24V DC loop powered (2-wire)",signals:"4-20 mA DC",grounding:"Isolated",shielding:"Shielded twisted pair"},
+measurement_points:["Arus loop (mA)","Bandingkan dengan pressure gauge","Tahanan isolasi"],
+normal_values:["4 mA = 0%","20 mA = 100%","Akurasi: ±0,1% FS","Tegangan loop: 24V DC"],
+reference_standards:["IEC 60770","IEC 60381-1 (4-20mA)","ISA-50.1"],
+common_failure:["Zero drift","Diaphragm pecah","Impulse line tersumbat","Loop putus"],
+troubleshooting:[
+{symptom:"Pembacaan 0 mA",causes:["Loop putus","Power fail","Sensor fail"],actions:["Ukur tegangan loop","Cek kabel","Test sensor"]},
+{symptom:"Pembacaan 4 mA (0%)",causes:["Zero drift","Impulse tersumbat","Diaphragm"],actions:["Kalibrasi zero","Bersihkan impulse line","Ganti sensor"]}],
+case_study:"PT boiler terbaca 0,5 bar padahal aktual 7 bar. Investigasi: impulse line tersumbat sludge. Dibersihkan, normal.",
+related_components:["Impulse Line","Manifold","Junction Box","Barrier"],related_equipment:["Boiler","Main Engine","Compressor"],training_questions:[]},
+
+{id:"SN-004",name:"Proximity Sensor (Inductive)",short_name:"Prox",machinery:"Semua machinery",machinery_section:"Valve, motor, speed pickup engine",synonyms:["proximity sensor","prox","sensor jarak"],category:"Sensors",subcategory:"Position",vessel:"50.000 DWT",
+electronical_role:"Deteksi kedekatan tanpa kontak — untuk end position, speed pickup, feedback valve.",
+electronical_components:[
+{name:"Oscillator Coil",function:"Membangkitkan medan magnet",type:"Internal"},
+{name:"Detector Circuit",function:"Deteksi perubahan medan",type:"Internal"},
+{name:"Output Stage",function:"Transistor NPN/PNP",type:"Output digital"},
+{name:"LED Indicator",function:"Status visual",type:"Bagian depan"}],
+signal_flow:["Target logam mendekat → Medan berubah → Sensor mendeteksi → Output digital → PLC"],
+wiring_concept:{power:"24V DC (2/3/4-wire)",signals:"Digital 24V DC",grounding:"Isolated",shielding:"Shielded"},
+measurement_points:["Supply 24V DC","Tegangan output (ON/OFF)","Jarak sensing","Status LED"],
+normal_values:["Jarak sensing: 4-20 mm (sn)","Supply: 24V DC ±20%","Output: NPN/PNP 200mA"],
+reference_standards:["IEC 60947-5-2","IEC 61000 (EMC)"],
+common_failure:["Tidak mendeteksi","Trigger palsu","Short circuit","Air masuk"],
+troubleshooting:[
+{symptom:"Prox tidak mendeteksi",causes:["Jarak terlalu jauh","Kabel","Sensor fail"],actions:["Cek gap (set ke Sn/2)","Cek kabel","Ganti sensor"]},
+{symptom:"Trigger palsu",causes:["Serpihan logam","EMI","Getaran"],actions:["Bersihkan","Cek EMI","Redam getaran"]}],
+case_study:"Speed pickup M/E intermiten. Investigasi: gap terlalu besar karena bearing aus. Gap diset ke Sn/2, normal.",
+related_components:["PLC DI Module","Relay"],related_equipment:["Main Engine","Valve","Motor"],training_questions:[]},
+
+// ===== PLC / ACTUATOR =====
+{id:"PL-001",name:"PLC Marine",machinery:"Otomasi",machinery_section:"Panel kontrol utama",synonyms:["plc","programmable logic controller","marine plc"],category:"PLC",subcategory:"Controller",vessel:"50.000 DWT",
+electronical_role:"Otak sistem kontrol — mengeksekusi program untuk kontrol machinery, alarm, interlock.",
+electronical_components:[
+{name:"CPU",function:"Prosesor & memori",type:"Siemens S7-1200/1500, Mitsubishi FX/Q"},
+{name:"Power Supply",function:"Konversi 24V DC",type:"Redundan (opsional)"},
+{name:"DI Module",function:"Baca digital 24V",type:"Sink/source"},
+{name:"DO Module",function:"Output digital relay/transistor",type:"Relay 2A/transistor 0,5A"},
+{name:"AI Module",function:"Baca 4-20mA, 0-10V, RTD, TC",type:"Input analog"},
+{name:"AO Module",function:"Output 4-20mA, 0-10V",type:"Output analog"},
+{name:"Communication Module",function:"Modbus, Profibus, Ethernet",type:"Beragam"},
+{name:"HMI Interface",function:"Display & kontrol",type:"Touch panel"}],
+signal_flow:["Sensor → Modul DI/AI → CPU (scan cycle) → Program → DO/AO → Actuator","→ Tampilan HMI","→ Komunikasi ke sistem lain"],
+wiring_concept:{power:"24V DC ±20%",signals:"Digital 24V, analog 4-20mA / 0-10V, komunikasi fieldbus",grounding:"Isolated, single point",shielding:"Shielded untuk analog & komunikasi"},
+measurement_points:["Supply 24V DC","Sinyal input","Sinyal output","Scan time","Status CPU"],
+normal_values:["Supply: 24V DC ±20%","Scan time: 1-50 ms","Arus I/O: sesuai spesifikasi","Suhu CPU: <60°C"],
+reference_standards:["IEC 61131","Class rules (NK, DNV, LR)","IACS UR E10"],
+common_failure:["CPU fault","I/O card fault","Komunikasi fault","Error program","Battery backup"],
+troubleshooting:[
+{symptom:"PLC tidak scan",causes:["Power","CPU fault","Error program","Memori rusak"],actions:["Cek power 24V","Cek LED CPU","Hubungkan software","Cek program"]},
+{symptom:"Input tidak terbaca",causes:["Card fault","Wiring","Sensor"],actions:["Test LED input","Cek wiring","Cek sensor"]}],
+case_study:"PLC tidak responsif setelah power outage. Investigasi: battery backup memori habis. Program di-restore dari backup, battery diganti, normal.",
+related_components:["DI/DO/AI/AO Module","HMI","Power Supply"],related_equipment:["Semua sistem otomasi"],
+training_questions:[{q:"Apa itu scan cycle PLC?",options:["Baca input → eksekusi program → update output","Baca output saja","Program saja"],answer:0}]},
+
+{id:"PL-002",name:"Servo Valve",machinery:"Steering / HPU / Actuator",machinery_section:"Sistem hidrolik",synonyms:["servo valve","katup servo","proportional valve"],category:"Actuator",subcategory:"Hydraulic Control",vessel:"50.000 DWT — steering, valve kargo",
+electronical_role:"Mengubah sinyal listrik (0-800mA) menjadi posisi valve hidrolik yang presisi.",
+electronical_components:[
+{name:"Torque Motor",function:"Konversi arus ke gaya",type:"Permanent magnet"},
+{name:"LVDT",function:"Feedback posisi",type:"Linear Variable Differential Transformer"},
+{name:"Servo Amplifier",function:"Kontrol arus ke torque motor",type:"Closed loop"}],
+signal_flow:["PLC → Command (0-10V atau 4-20mA) → Servo Amplifier → Torque motor → Posisi spool","LVDT → Feedback → Servo Amplifier → Closed loop"],
+wiring_concept:{power:"24V DC + 110/220V AC untuk amplifier",signals:"Command 0-10V/±10V, LVDT AC, feedback analog",grounding:"Isolated signal ground",shielding:"Shielded untuk command & feedback"},
+measurement_points:["Sinyal command (V)","Arus torque motor (mA)","Sinyal LVDT","Posisi spool"],
+normal_values:["Command: 0-10V atau ±10V","Arus torque motor: 0-800mA (VERIFY)","LVDT: eksitasi AC 3-7V, 2,5 kHz","Histeresis: <1%"],
+reference_standards:["ISO 10770 (servo valve test)","ISO 4413 (hydraulic)","IEC 60534"],
+common_failure:["Torque motor fail","LVDT drift","Spool macet","Kontaminasi"],
+troubleshooting:[
+{symptom:"Servo tidak merespons",causes:["Sinyal command","Torque motor","Spool macet","LVDT"],actions:["Ukur sinyal command","Ukur arus torque motor","Cek kebersihan oli","Cek LVDT"]},
+{symptom:"Servo drift",causes:["LVDT","Null offset","Suhu"],actions:["Kalibrasi null","Cek drift suhu","Kalibrasi LVDT"]}],
+case_study:"Servo steering drift rudder 2°. Investigasi: null offset drift karena usia. Null dikalibrasi ulang, normal.",
+related_components:["Servo Amplifier","LVDT","Torque Motor"],related_equipment:["Steering Gear","HPU","Cargo Valve"],
+training_questions:[{q:"Feedback servo valve menggunakan?",options:["LVDT","Thermocouple","RTD"],answer:0}]},
+
+{id:"PL-003",name:"Solenoid Valve Control",machinery:"Semua sistem",machinery_section:"Hidrolik, pneumatik, proses",synonyms:["solenoid valve","sv","valve solenoid"],category:"Actuator",subcategory:"Valve",vessel:"50.000 DWT",
+electronical_role:"Kontrol buka/tutup valve fluida via elektromagnetik.",
+electronical_components:[
+{name:"Solenoid Coil",function:"Driver elektromagnetik",type:"Coil DC/AC"},
+{name:"Plunger",function:"Mekanisme valve",type:"Magnetik"},
+{name:"Return Spring",function:"Reset ke posisi normal",type:"Pegas"},
+{name:"Manual Override",function:"Operasi darurat manual",type:"Tombol manual"}],
+signal_flow:["PLC DO → Relay → Coil → Medan magnet → Plunger bergerak → Valve buka/tutup"],
+wiring_concept:{power:"24V DC / 110V AC / 220V AC",signals:"Digital ON/OFF",grounding:"Isolated (untuk DC)",shielding:"Shielded (untuk kabel panjang)"},
+measurement_points:["Resistansi coil","Tegangan coil","Arus yang ditarik","Test fungsi"],
+normal_values:["Resistansi coil: sesuai spesifikasi (umumnya 50-500Ω)","Tegangan: ±10% rating","Arus: sesuai nameplate"],
+reference_standards:["IEC 60534-1 (control valve)","IEC 60947-5-1 (control circuit)"],
+common_failure:["Coil terbakar","Coil open","Plunger macet","Air masuk"],
+troubleshooting:[{symptom:"Solenoid tidak aktif",causes:["Coil open/terbakar","Tidak ada tegangan","Plunger macet"],actions:["Ukur resistansi coil","Ukur tegangan di terminal","Test manual override"]}],
+case_study:"Solenoid valve cooling water tidak membuka. Investigasi: coil open. Coil diganti, normal.",
+related_components:["Relay","PLC DO","Snubber Diode"],related_equipment:["Steering Gear","Refrigeration","HPU"],training_questions:[]},
+
+{id:"PL-004",name:"Analog Input Module (PLC)",machinery:"Otomasi",machinery_section:"Panel PLC",synonyms:["ai module","analog input","input analog plc"],category:"PLC",subcategory:"I/O",vessel:"50.000 DWT",
+electronical_role:"Mengonversi sinyal analog (4-20mA, RTD, TC) menjadi data digital untuk PLC.",
+electronical_components:[
+{name:"Analog Filter",function:"Anti-aliasing",type:"Filter RC"},
+{name:"ADC (Analog to Digital)",function:"Konversi 12-16 bit",type:"Sigma-delta / SAR"},
+{name:"Isolation",function:"Isolasi galvanik",type:"Opto / transformer"},
+{name:"Multiplexer",function:"Input multi-channel",type:"Analog switch"}],
+signal_flow:["Sensor (4-20mA) → Terminal → Filter → ADC → Isolasi → CPU"],
+wiring_concept:{power:"Dari backplane PLC",signals:"4-20mA, 0-10V, RTD 3/4-wire, TC",grounding:"Channel terisolasi",shielding:"Kabel sinyal shielded"},
+measurement_points:["Arus input (mA)","Tegangan","Nilai konversi ADC"],
+normal_values:["Resolusi: 12-16 bit","Akurasi: ±0,1% FS","Impedansi input: 250Ω (current)"],
+reference_standards:["IEC 61131-2 (PLC equipment)","IEC 61158 (Fieldbus)"],
+common_failure:["Channel fail","Drift","Isolasi breakdown"],
+troubleshooting:[{symptom:"Channel AI tidak membaca",causes:["Wiring","Channel fail","Sensor","Konfigurasi"],actions:["Ukur sinyal di terminal","Test dengan sumber yang diketahui","Cek konfigurasi software"]}],
+case_study:"Channel #4 modul AI tidak membaca PT100. Investigasi: konfigurasi 4-wire padahal sensor 3-wire. Konfigurasi diubah, normal.",
+related_components:["RTD","TC","Transmitter","Terminal Block"],related_equipment:["PLC","AMS"],training_questions:[]},
+
+{id:"PL-005",name:"HMI Marine",short_name:"HMI",machinery:"Otomasi",machinery_section:"Panel kontrol / ECR / Bridge",synonyms:["hmi","human machine interface","touch panel"],category:"PLC",subcategory:"Display",vessel:"50.000 DWT",
+electronical_role:"Antarmuka operator ke PLC — menampilkan data & menerima perintah.",
+electronical_components:[
+{name:"Touchscreen LCD",function:"Display & input",type:"TFT 7-15 inci"},
+{name:"CPU",function:"Render & komunikasi",type:"Embedded"},
+{name:"Communication Port",function:"Ke PLC",type:"RS-232, RS-485, Ethernet"},
+{name:"Flash Memory",function:"Program & log",type:"NAND/SSD"}],
+signal_flow:["Sentuhan operator → CPU HMI → Protokol (Modbus/Profinet) → PLC","PLC → HMI → Tampilan data"],
+wiring_concept:{power:"24V DC",signals:"RS-485 / Ethernet",grounding:"Isolated",shielding:"Shielded"},
+measurement_points:["Supply 24V DC","Status komunikasi","Respons sentuh"],
+normal_values:["Supply: 24V DC ±20%","Layar: 7-15 inci","Komunikasi: Modbus/Profinet"],
+reference_standards:["IEC 61131","IEC 60945 (Marine navigation equipment)"],
+common_failure:["Layar kosong","Komunikasi fail","Touch fail","Backlight fail"],
+troubleshooting:[{symptom:"HMI tidak berkomunikasi",causes:["Kabel","Setting","PLC"],actions:["Cek kabel","Cek setting IP/baud","Cek PLC"]}],
+case_study:"HMI tidak berkomunikasi setelah maintenance. Investigasi: kabel Ethernet lupa dipasang. Dipasang kembali, normal.",
+related_components:["PLC","Communication Cable"],related_equipment:["PLC","AMS"],training_questions:[]},
+
+// ===== FORMULA =====
+{id:"FM-001",name:"Rumus: Scaling 4-20 mA",short_name:"Scaling 4-20mA",category:"Formula",subcategory:"Instrumentation",machinery:"Instrumentasi",machinery_section:"Semua",synonyms:["scaling","rumus 4-20 ma","konversi sinyal"],vessel:"50.000 DWT",
+electronical_role:"Konversi arus loop ke nilai engineering.",
+definition:"Nilai = ((I − 4) / 16) × (Max − Min) + Min",formula:"Nilai = ((I − 4) / 16) × (Max − Min) + Min",
+example:"I = 12 mA, Min = 0, Max = 10 bar → Nilai = ((12−4)/16) × 10 = 5 bar",
+wiring_concept:"Loop 4-20 mA ditenagai 24V DC",reference_standards:["ISA-50.1","IEC 60381-1"],electronical_components:[]},
+{id:"FM-002",name:"Rumus: Resistansi RTD ke Suhu (PT100)",short_name:"Rumus PT100",category:"Formula",subcategory:"Temperature",machinery:"Instrumentasi",machinery_section:"Semua",synonyms:["rumus pt100","rtd formula"],vessel:"50.000 DWT",
+electronical_role:"Konversi resistansi PT100 ke suhu (IEC 60751).",
+definition:"Untuk 0-850°C: R(t) = R0 × (1 + A×t + B×t²) dengan R0=100, A=3,9083E-3, B=-5,775E-7",formula:"R(t) = 100 × (1 + 0,0039083×t − 0,0000005775×t²)",
+example:"R = 138,51Ω → t ≈ 100°C",reference_standards:["IEC 60751"],electronical_components:[]},
+{id:"FM-003",name:"Rumus: Tegangan Thermocouple (Type K)",short_name:"TC Type K",category:"Formula",subcategory:"Temperature",machinery:"Instrumentasi",machinery_section:"Semua",synonyms:["thermocouple formula","tc voltage"],vessel:"50.000 DWT",
+electronical_role:"Konversi mV ke suhu (Type K ≈ 41 μV/°C, pendekatan linier).",
+definition:"Type K: ~41 μV/°C. Range -200 s/d 1372°C. Pendekatan linier hanya untuk perkiraan kasar; gunakan tabel IEC 60584 untuk hasil akurat.",formula:"E(mV) ≈ 41 × T(°C) / 1000 (pendekatan linier)",
+example:"20 mV ≈ 488°C (pendekatan kasar; tabel Type K menunjukkan sekitar 490°C)",reference_standards:["IEC 60584"],electronical_components:[]},
+{id:"FM-004",name:"Rumus: Scan Time PLC",short_name:"Scan Time",category:"Formula",subcategory:"PLC",machinery:"PLC",machinery_section:"Semua",synonyms:["scan time","cycle time"],vessel:"50.000 DWT",
+electronical_role:"Waktu total satu siklus PLC: input + program + output.",
+definition:"T_scan = T_input + T_program + T_output + T_comm",formula:"T_scan = T_input + T_program + T_output + T_comm",
+example:"10 ms input + 20 ms program + 5 ms output = 35 ms",reference_standards:["IEC 61131"],electronical_components:[]},
+{id:"FM-005",name:"Rumus: Baud Rate & Waktu Kirim NMEA",short_name:"Baud NMEA",category:"Formula",subcategory:"Communication",machinery:"Komunikasi",machinery_section:"Bridge",synonyms:["nmea baud","serial rate"],vessel:"50.000 DWT",
+electronical_role:"Waktu transmisi satu kalimat NMEA.",
+definition:"Waktu = (Total bit) / Baud rate × 1000 (ms)",formula:"T(ms) = bit / baud × 1000",
+example:"Kalimat NMEA 100 karakter @ 4800 baud ≈ 800 bit / 4800 × 1000 ≈ 167 ms",reference_standards:["IEC 61162"],electronical_components:[]}
+];
+
+// ==================== STATE & HELPER ====================
+const data = seedData;
+const G = 'https://www.google.com/search?q=';
+const gUrl = q => G + encodeURIComponent(q);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+// ==================== NAVIGASI ====================
+const viewCategories = {
+  mecs:[['MECS','mecsList']], auxec:[['AECS','auxecList']], steering:[['Steering','steeringList']],
+  cargo:[['Cargo','cargoList']], safety:[['Safety','safetyList']], navi:[['Navigation','naviList']],
+  comm:[['Communication','commList']], sensors:[['Sensors','sensorsList']],
+  plc:[['PLC','plcList'],['Actuator','plcList']]
+};
+
+function showView(view){
+  document.querySelectorAll('#mainNav button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+  document.getElementById('view-' + view).classList.remove('hidden');
+  if (view === 'dashboard') renderSearchResults(document.getElementById('searchInput').value);
+  if (viewCategories[view]) renderCategories(viewCategories[view]);
+  if (view === 'formula') renderFormulas();
+  if (view === 'training') renderTraining();
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll('#mainNav button').forEach(btn => btn.addEventListener('click', () => showView(btn.dataset.view)));
+
+// Tombol "Googling topik ini" di tiap bagian
+document.querySelectorAll('[data-gq]').forEach(a => { a.href = gUrl(a.dataset.gq); });
+
+// ==================== KARTU ====================
+function cardHtml(item, len){
+  const role = item.electronical_role ? esc(item.electronical_role.substring(0, len)) + (item.electronical_role.length > len ? '…' : '') : '';
+  return `<div class="card" tabindex="0" role="button" onclick="showDetail('${item.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showDetail('${item.id}')}">
+    <h3>${esc(item.name)} ${item.short_name ? '<span class="badge">' + esc(item.short_name) + '</span>' : ''}</h3>
+    <div class="role">🔧 ${role}</div>
+    <p>${esc(item.machinery || '')}</p>
+    <div style="margin-top:.5rem;"><span class="tag tag-purple">${esc(item.category || '')}</span><span class="tag tag-blue">${esc(item.subcategory || '')}</span></div>
+  </div>`;
+}
+
+function renderCategories(pairs){
+  const containerId = pairs[0][1];
+  const items = pairs.flatMap(([cat]) => data.filter(d => d.category === cat));
+  document.getElementById(containerId).innerHTML = items.length ? items.map(i => cardHtml(i, 120)).join('') : '<p>Belum ada materi.</p>';
+}
+
+// ==================== PENCARIAN ====================
+function tokenize(str){ return (str || '').toLowerCase().replace(/[^\w\sà-ÿ]/g, ' ').split(/\s+/).filter(Boolean); }
+function buildSearchText(item){
+  return [
+    item.name, item.short_name, item.category, item.subcategory, item.machinery, item.machinery_section,
+    item.definition, item.electronical_role, item.vessel,
+    ...(item.synonyms || []),
+    ...(item.electronical_components || []).map(c => c.name + ' ' + c.function + ' ' + (c.type || '')),
+    ...(item.signal_flow || []), ...(item.measurement_points || []), ...(item.normal_values || []),
+    ...(item.reference_standards || []), ...(item.common_failure || []),
+    ...(item.troubleshooting || []).map(t => t.symptom + ' ' + (t.causes || []).join(' ') + ' ' + (t.actions || []).join(' ')),
+    item.wiring_concept && typeof item.wiring_concept === 'object' ? Object.values(item.wiring_concept).join(' ') : (item.wiring_concept || '')
+  ].filter(Boolean).join(' ').toLowerCase();
+}
+function scoreItem(item, tokens){
+  const text = buildSearchText(item);
+  const name = (item.name + ' ' + (item.short_name || '') + ' ' + (item.synonyms || []).join(' ')).toLowerCase();
+  let score = 0;
+  tokens.forEach(t => { if (name.includes(t)) score += 10; if (text.includes(t)) score += 3; });
+  if (name.includes(tokens.join(' '))) score += 20;
+  return score;
+}
+function search(query){
+  const tokens = tokenize(query);
+  if (!tokens.length) return data.slice();
+  return data.map(item => ({item, score: scoreItem(item, tokens)})).filter(x => x.score > 0).sort((a, b) => b.score - a.score).map(x => x.item);
+}
+
+function renderQuickTags(){
+  const tags = ['ECU','CCU','FIVA','Governor','AVR','Steering','Autopilot','Gyro','ECDIS','AIS','BNWAS','VDR','PT100','4-20mA','NMEA','Servo Valve','PLC','HMI'];
+  const box = document.getElementById('quickTags');
+  box.innerHTML = tags.map(t => `<button type="button" class="tag" data-q="${t}">${t}</button>`).join('');
+  box.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    document.getElementById('searchInput').value = b.dataset.q;
+    renderSearchResults(b.dataset.q);
+  }));
+}
+
+function renderSearchResults(query){
+  query = query || '';
+  const results = search(query);
+  const container = document.getElementById('searchResults');
+  const info = document.getElementById('searchInfo');
+  if (!query.trim()) info.textContent = `📚 ${data.length} materi Electronical / Control / Actuating — klik kartu untuk detail lengkap.`;
+  else info.textContent = `🔍 ${results.length} hasil untuk "${query}".`;
+  if (!results.length){
+    container.innerHTML = `<p style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--dim);">Tidak ditemukan di aplikasi. <a href="${gUrl(query + ' shipboard marine electronical')}" target="_blank" rel="noopener" style="color:var(--blue);">Coba cari "${esc(query)}" di Google</a>.</p>`;
+    return;
+  }
+  container.innerHTML = results.map(i => cardHtml(i, 100)).join('');
+}
+
+function googleFromBox(){
+  const q = document.getElementById('searchInput').value.trim();
+  window.open(gUrl((q || 'shipboard electronical control system') + ' marine shipboard'), '_blank', 'noopener');
+}
+document.getElementById('searchBtn').addEventListener('click', () => renderSearchResults(document.getElementById('searchInput').value));
+document.getElementById('googleBtn').addEventListener('click', googleFromBox);
+document.getElementById('searchInput').addEventListener('keyup', e => { if (e.key === 'Enter') renderSearchResults(e.target.value); });
+document.getElementById('searchInput').addEventListener('input', e => { renderSearchResults(e.target.value); });
+
+// ==================== POPUP DETAIL ====================
+function closeModal(){
+  document.getElementById('modalOverlay').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+window.closeModal = closeModal;
+
+function chips(list, suffix){
+  return (list || []).map(x => `<a class="chip" href="${gUrl(x + ' ' + (suffix || 'marine'))}" target="_blank" rel="noopener" title="Cari di Google">${esc(x)} 🔍</a>`).join('');
+}
+
+window.showDetail = function(id){
+  const item = data.find(d => d.id === id); if (!item) return;
+  const enc = encodeURIComponent(item.name);
+  const links = {
+    google: gUrl(item.name + ' marine shipboard electronical'),
+    youtube: `https://www.youtube.com/results?search_query=${enc}+marine+tutorial`,
+    pinterest: `https://www.pinterest.com/search/pins/?q=${enc}+wiring+diagram`,
+    manual: gUrl(item.name + ' datasheet manual PDF'),
+    imo: `https://www.imo.org/en/search/pages/results.aspx?k=${enc}`,
+    solas: gUrl('SOLAS ' + item.name),
+    marpol: gUrl('MARPOL ' + item.name),
+    cls: gUrl('class rules ' + item.name),
+    iec: gUrl('IEC standard ' + item.name)
+  };
+
+  let h = `<button class="modal-close" onclick="closeModal()" aria-label="Tutup">×</button>
+    <h2>${esc(item.name)} ${item.short_name ? '<span class="badge">' + esc(item.short_name) + '</span>' : ''}</h2>
+    ${item.machinery ? `<div class="info-row"><strong>Permesinan:</strong><span>${esc(item.machinery)}</span></div>` : ''}
+    ${item.machinery_section ? `<div class="info-row"><strong>Lokasi / Bagian:</strong><span>${esc(item.machinery_section)}</span></div>` : ''}
+    ${item.vessel ? `<div class="info-row"><strong>Kapal Acuan:</strong><span>${esc(item.vessel)}</span></div>` : ''}
+    ${item.category ? `<div class="info-row"><strong>Kategori:</strong><span>${esc(item.category)} / ${esc(item.subcategory || '-')}</span></div>` : ''}
+    ${item.synonyms && item.synonyms.length ? `<div class="info-row"><strong>Istilah lain:</strong><span>${chips(item.synonyms, 'marine')}</span></div>` : ''}`;
+
+  if (item.electronical_role) h += `<h3>⚡ Peran Electronical</h3><p>${esc(item.electronical_role)}</p>`;
+  if (item.definition) h += `<h3>📖 Definisi</h3><p>${esc(item.definition)}</p>`;
+  if (item.formula) h += `<h3>📐 Rumus</h3><p><code style="background:var(--navy);padding:.3rem .6rem;border-radius:4px;color:var(--accent);">${esc(item.formula)}</code></p>`;
+  if (item.example) h += `<p style="color:var(--accent2);"><strong>Contoh:</strong> ${esc(item.example)}</p>`;
+
+  if (item.electronical_components && item.electronical_components.length){
+    h += `<h3>🔌 Komponen Electronical</h3>`;
+    item.electronical_components.forEach(c => {
+      h += `<div class="comp-block"><strong>▸ ${esc(c.name)}</strong><a class="glink" href="${gUrl(c.name + ' ' + (item.short_name || item.name) + ' marine')}" target="_blank" rel="noopener">🔍 Google</a>
+        <div class="sub">${esc(c.function)}</div>${c.type ? `<div class="type">Tipe: ${esc(c.type)}</div>` : ''}</div>`;
+    });
+  }
+  if (item.signal_flow && item.signal_flow.length){
+    h += `<h3>🔄 Alur Sinyal (Signal Flow)</h3><div class="flow">` + item.signal_flow.map((l, i) => `${i + 1}. ${esc(l)}`).join('\n') + `</div>`;
+  }
+  if (item.wiring_concept){
+    h += `<h3>🔗 Konsep Wiring</h3>`;
+    const labels = {power:'DAYA', signals:'SINYAL', grounding:'GROUNDING', shielding:'SHIELDING'};
+    if (typeof item.wiring_concept === 'object'){
+      h += `<div class="wiring-box">` + Object.entries(item.wiring_concept).map(([k, v]) => `${labels[k] || k.toUpperCase()}:\n  ${esc(v)}`).join('\n\n') + `</div>`;
+    } else h += `<div class="wiring-box">${esc(item.wiring_concept)}</div>`;
+  }
+  if (item.measurement_points && item.measurement_points.length) h += `<h3>📏 Titik Pengukuran</h3><ul>${item.measurement_points.map(m => `<li>${esc(m)}</li>`).join('')}</ul>`;
+  if (item.normal_values && item.normal_values.length) h += `<h3>✅ Nilai Normal / Besaran</h3><ul>${item.normal_values.map(v => `<li>${esc(v)}</li>`).join('')}</ul>`;
+  if (item.reference_standards && item.reference_standards.length){
+    h += `<h3>📜 Referensi / Regulasi (klik untuk Google)</h3><div class="ref-box">${chips(item.reference_standards.map(r => r.replace(/\s*\((VERIFY[^)]*)\)\s*/i, ' ').trim()), '')}</div>`;
+  }
+  if (item.common_failure && item.common_failure.length) h += `<h3>⚠️ Kegagalan Umum</h3><ul>${item.common_failure.map(f => `<li>${esc(f)}</li>`).join('')}</ul>`;
+  if (item.troubleshooting && item.troubleshooting.length){
+    h += `<h3>🔧 Troubleshooting (UKUR DULU)</h3>`;
+    item.troubleshooting.forEach(t => {
+      h += `<div class="case-box"><strong>🔴 Gejala: ${esc(t.symptom)}</strong><br><em>Kemungkinan penyebab:</em> ${(t.causes || []).map(esc).join(' • ')}<br><em>Tindakan:</em> ${(t.actions || []).map(esc).join(' → ')}<br>
+        <a class="chip" href="${gUrl(t.symptom + ' ' + item.name + ' troubleshooting marine')}" target="_blank" rel="noopener">🔍 Cari solusi di Google</a></div>`;
+    });
+  }
+  if (item.case_study) h += `<h3>📚 Studi Kasus (Kapal 50.000 DWT)</h3><div class="case-box">${esc(item.case_study)}</div>`;
+  if (item.related_components && item.related_components.length) h += `<h3>🔗 Komponen Terkait</h3><p>${chips(item.related_components, 'marine')}</p>`;
+  if (item.related_equipment && item.related_equipment.length) h += `<h3>⚙️ Peralatan Terkait</h3><p>${chips(item.related_equipment, 'marine')}</p>`;
+  if (item.training_questions && item.training_questions.length){
+    h += `<h3>🎓 Soal Latihan</h3>` + item.training_questions.map(q => `<p>• <strong>${esc(q.q)}</strong><br><span style="color:var(--accent);">✔ ${esc(q.options[q.answer])}</span></p>`).join('');
+  }
+
+  h += `<h3>🌐 Cari Lebih Lanjut</h3>
+  <div class="btn-group">
+    <a class="btn-ext btn-google" href="${links.google}" target="_blank" rel="noopener">🔍 Google</a>
+    <a class="btn-ext btn-youtube" href="${links.youtube}" target="_blank" rel="noopener">▶️ YouTube</a>
+    <a class="btn-ext btn-pinterest" href="${links.pinterest}" target="_blank" rel="noopener">📌 Pinterest</a>
+    <a class="btn-ext btn-manual" href="${links.manual}" target="_blank" rel="noopener">📄 Manual / Datasheet</a>
+  </div>
+  <div class="btn-group">
+    <a class="btn-ext btn-imo" href="${links.imo}" target="_blank" rel="noopener">⚓ IMO</a>
+    <a class="btn-ext btn-solas" href="${links.solas}" target="_blank" rel="noopener">📕 SOLAS</a>
+    <a class="btn-ext btn-marpol" href="${links.marpol}" target="_blank" rel="noopener">🌊 MARPOL</a>
+    <a class="btn-ext btn-class" href="${links.cls}" target="_blank" rel="noopener">🏛️ Class Rules</a>
+    <a class="btn-ext btn-iec" href="${links.iec}" target="_blank" rel="noopener">📘 Standar IEC</a>
+  </div>
+  <p class="modal-credit">Materi pembelajaran Taruna Poltekpel &amp; UHT — Periode 2026 • Dibuat oleh <strong>Rafael Sukirno, CE</strong><br>Nilai bertanda (VERIFY) harus dicek ke manual pabrikan &amp; class rules.</p>`;
+
+  const content = document.getElementById('modalContent');
+  content.innerHTML = h;
+  const ov = document.getElementById('modalOverlay');
+  ov.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  ov.scrollTop = 0;
+};
+
+document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target.id === 'modalOverlay') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ==================== RUMUS & KALKULATOR ====================
+function renderFormulas(){
+  const formulas = data.filter(d => d.category === 'Formula');
+  document.getElementById('formulaList').innerHTML = formulas.map(f => `
+    <div class="card" tabindex="0" role="button" onclick="showFormulaCalc('${f.id}')" onkeydown="if(event.key==='Enter'){showFormulaCalc('${f.id}')}">
+      <h3>📐 ${esc(f.name)}</h3>
+      <p><code style="background:var(--navy);padding:.2rem .5rem;border-radius:4px;color:var(--accent);font-size:.82rem;">${esc(f.formula)}</code></p>
+      <p style="font-size:.85rem;color:var(--dim);">${esc(f.electronical_role || '')}</p>
+    </div>`).join('');
+  document.getElementById('formulaDetail').classList.add('hidden');
+}
+window.showFormulaCalc = function(id){
+  const item = data.find(d => d.id === id); if (!item) return;
+  const d = document.getElementById('formulaDetail');
+  d.classList.remove('hidden');
+  const inp = (i, l) => `<label for="${i}">${l}</label><input type="number" id="${i}" step="any">`;
+  const forms = {
+    'FM-001': inp('calc_I','Arus I (mA):') + inp('calc_Min','Nilai minimum (engineering):') + inp('calc_Max','Nilai maksimum (engineering):') + `<button onclick="calc420()">Hitung</button>`,
+    'FM-002': inp('calc_R','Resistansi PT100 (Ω):') + `<button onclick="calcPT100()">Hitung Suhu</button>`,
+    'FM-003': inp('calc_mV','Tegangan (mV) Type K:') + `<button onclick="calcTC()">Hitung Suhu</button>`,
+    'FM-004': inp('calc_ti','Input (ms):') + inp('calc_tp','Program (ms):') + inp('calc_to','Output (ms):') + inp('calc_tc','Komunikasi (ms):') + `<button onclick="calcScan()">Hitung</button>`,
+    'FM-005': inp('calc_bits','Jumlah bit:') + inp('calc_baud','Baud rate:') + `<button onclick="calcNMEA()">Hitung</button>`
+  };
+  d.innerHTML = `<h3>📐 ${esc(item.name)}</h3>
+    <p><code style="background:var(--navy);padding:.3rem .6rem;border-radius:4px;color:var(--accent);">${esc(item.formula)}</code></p>
+    <p style="font-size:.85rem;color:var(--dim);margin:.5rem 0;">${esc(item.definition || '')}</p>
+    <p style="font-size:.85rem;color:var(--accent2);">Contoh: ${esc(item.example || '')}</p>
+    <div class="formula-calc">${forms[id] || ''}<div class="result" id="calc_result" aria-live="polite"></div></div>
+    <div class="btn-group"><a class="btn-ext btn-google" href="${gUrl(item.name + ' instrumentation')}" target="_blank" rel="noopener">🔍 Googling rumus ini</a></div>`;
+  d.scrollIntoView({behavior:'smooth', block:'nearest'});
+};
+const num = id => parseFloat(document.getElementById(id).value);
+const out = t => { document.getElementById('calc_result').textContent = t; };
+window.calc420 = function(){
+  const I = num('calc_I'), Min = num('calc_Min'), Max = num('calc_Max');
+  if ([I, Min, Max].some(isNaN)) return out('⚠️ Isi semua kolom dulu.');
+  const warn = (I < 3.8 || I > 20.5) ? ' (⚠️ di luar 4–20 mA: cek loop putus / sensor fault)' : '';
+  out(`✅ Nilai engineering: ${(((I - 4) / 16) * (Max - Min) + Min).toFixed(4)}${warn}`);
+};
+window.calcPT100 = function(){
+  const R = num('calc_R');
+  if (isNaN(R)) return out('⚠️ Isi resistansi dulu.');
+  const A = 3.9083e-3, B = -5.775e-7;
+  if (R < 100) return out('⚠️ Rumus ini berlaku untuk R ≥ 100Ω (suhu ≥ 0°C).');
+  const disc = A * A - 4 * B * (1 - R / 100);
+  if (disc < 0) return out('⚠️ Nilai di luar jangkauan rumus.');
+  out(`✅ Suhu: ${((-A + Math.sqrt(disc)) / (2 * B)).toFixed(2)} °C`);
+};
+window.calcTC = function(){
+  const mV = num('calc_mV');
+  if (isNaN(mV)) return out('⚠️ Isi tegangan dulu.');
+  out(`✅ Suhu ≈ ${(mV / 0.041).toFixed(1)} °C (pendekatan kasar Type K; untuk akurat pakai tabel IEC 60584)`);
+};
+window.calcScan = function(){
+  const v = ['calc_ti','calc_tp','calc_to','calc_tc'].map(i => num(i) || 0);
+  out(`✅ Scan time: ${v.reduce((a, b) => a + b, 0).toFixed(2)} ms`);
+};
+window.calcNMEA = function(){
+  const bits = num('calc_bits'), baud = num('calc_baud');
+  if (isNaN(bits) || isNaN(baud) || baud <= 0) return out('⚠️ Isi jumlah bit dan baud rate (>0).');
+  out(`✅ Waktu kirim: ${(bits / baud * 1000).toFixed(2)} ms`);
+};
+
+// ==================== LATIHAN SOAL ====================
+let lastQ = -1;
+function renderTraining(){
+  const c = document.getElementById('trainingArea');
+  const all = data.flatMap(item => (item.training_questions || []).map(q => ({...q, itemName:item.name})));
+  if (!all.length){ c.innerHTML = '<p>Belum ada soal.</p>'; return; }
+  let idx = Math.floor(Math.random() * all.length);
+  if (all.length > 1 && idx === lastQ) idx = (idx + 1) % all.length;
+  lastQ = idx;
+  const q = all[idx];
+  c.innerHTML = `
+    <div class="card" style="cursor:default;">
+      <h3>🎓 ${esc(q.itemName)}</h3>
+      <p style="font-size:1.05rem;margin:1rem 0;color:var(--text);"><strong>${esc(q.q)}</strong></p>
+      ${q.options.map((opt, i) => `<button class="opt-btn" data-i="${i}">${String.fromCharCode(65 + i)}. ${esc(opt)}</button>`).join('')}
+      <div id="trainingFeedback" style="margin-top:1rem;font-size:1.1rem;" aria-live="polite"></div>
+      <div class="btn-group">
+        <button id="nextQ" style="background:var(--accent);color:var(--onaccent);border:none;padding:.6rem 1.2rem;border-radius:6px;cursor:pointer;font-weight:bold;">🔄 Soal Lain</button>
+        <a class="btn-ext btn-google" href="${gUrl(q.itemName + ' marine')}" target="_blank" rel="noopener">🔍 Pelajari materinya di Google</a>
+      </div>
+    </div>`;
+  c.querySelectorAll('.opt-btn').forEach(b => b.addEventListener('click', () => {
+    const fb = document.getElementById('trainingFeedback');
+    const sel = Number(b.dataset.i);
+    fb.innerHTML = sel === q.answer
+      ? '<span style="color:var(--accent);">✅ Benar!</span>'
+      : `<span style="color:var(--danger);">❌ Belum tepat. Jawaban yang benar: ${String.fromCharCode(65 + q.answer)}. ${esc(q.options[q.answer])}</span>`;
+  }));
+  document.getElementById('nextQ').addEventListener('click', renderTraining);
+}
+
+// ==================== TEMA ====================
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const root = document.documentElement;
+  const isDark = root.dataset.theme ? root.dataset.theme === 'dark' : !window.matchMedia('(prefers-color-scheme: light)').matches;
+  root.dataset.theme = isDark ? 'light' : 'dark';
+});
+
+// ==================== INIT ====================
+renderQuickTags();
+renderSearchResults('');
+</script>
+</body>
+</html>
